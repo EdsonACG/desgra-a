@@ -359,61 +359,96 @@
                 </div>
             </div>
         </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-3 mb-8">
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 shrink-0"><i data-lucide="triangle-alert" class="w-5 h-5"></i></div>
-                <div class="min-w-0"><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Aberturas</p><p id="statAberturas" class="text-lg font-black text-slate-800">0</p></div>
-            </div>
-            
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 shrink-0"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
-                <div class="min-w-0"><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Fechamentos</p><p id="statFechamentos" class="text-lg font-black text-slate-800">0</p></div>
-            </div>
-            
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                <div id="slaColorBox" class="p-2.5 rounded-lg transition-colors duration-500 shrink-0"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
-                <div class="min-w-0"><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">SLA Geral</p><p id="statSLA" class="text-lg font-black text-slate-800">0%</p></div>
-            </div>
-
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-1">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 shrink-0"><i data-lucide="package-minus" class="w-5 h-5"></i></div>
-                    <div class="min-w-0">
-                        <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">NTP</p>
-                        <div class="flex items-baseline gap-1.5">
-                            <p id="statNTP" class="text-lg font-black text-slate-800">0</p>
-                            <p id="percNTP" class="text-[10px] font-bold text-rose-500">0%</p>
-                        </div>
-                    </div>
+		
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 shrink-0"><i data-lucide="triangle-alert" class="w-5 h-5"></i></div>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Aberturas</p>
+                    <button onclick="toggleAllDetails()" class="text-slate-300 hover:text-blue-500 transition-colors" title="Expandir/Recolher Detalhes">
+                        <i id="masterIcon" data-lucide="plus-circle" class="w-3 h-3"></i>
+                    </button>
                 </div>
-                <button onclick="sendNtpToTab()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 p-1.5 rounded-lg transition-colors shrink-0" title="Enviar para Aba NTP">
-                    <i data-lucide="arrow-right-circle" class="w-4 h-4"></i>
-                </button>
+                <p id="statAberturas" class="text-xl font-black text-slate-800 leading-tight">0</p>
             </div>
-            
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                <div class="bg-orange-50 p-2.5 rounded-lg text-orange-600 shrink-0"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></div>
+        </div>
+        
+        <div class="js-details hidden bg-rose-50/50 p-2 rounded-xl border border-rose-100/50 flex items-center justify-between gap-2 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="text-rose-600 shrink-0"><i data-lucide="package-minus" class="w-3.5 h-3.5"></i></div>
                 <div class="min-w-0">
-                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Reincidência</p>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">NTP</p>
                     <div class="flex items-baseline gap-1.5">
-                        <p id="statReincidencia" class="text-lg font-black text-slate-800">0</p>
-                        <p id="percReincidencia" class="text-[10px] font-bold text-orange-500">0%</p>
+                        <p id="statNTP" class="text-sm font-black text-slate-800">0</p>
+                        <p id="percNTP" class="text-[9px] font-bold text-rose-500">0%</p>
                     </div>
                 </div>
             </div>
-            
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                <div class="bg-indigo-50 p-2.5 rounded-lg text-indigo-600 shrink-0"><i data-lucide="refresh-cw" class="w-5 h-5"></i></div>
-                <div class="min-w-0">
-                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Troca Técnica</p>
-                    <div class="flex items-baseline gap-1.5">
-                        <p id="statTroca" class="text-lg font-black text-slate-800">0</p>
-                        <p id="percTroca" class="text-[10px] font-bold text-indigo-500">0%</p>
-                    </div>
+            <button onclick="sendNtpToTab()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 p-1 rounded-md transition-colors"><i data-lucide="arrow-right-circle" class="w-3.5 h-3.5"></i></button>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 shrink-0"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+            <div class="min-w-0">
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Fechamentos</p>
+                <p id="statFechamentos" class="text-xl font-black text-slate-800 leading-tight">0</p>
+            </div>
+        </div>
+
+        <div class="js-details hidden bg-orange-50/50 p-2 rounded-xl border border-orange-100/50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
+            <div class="text-orange-600 shrink-0"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></div>
+            <div class="min-w-0">
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">Reincidência</p>
+                <div class="flex items-baseline gap-1.5">
+                    <p id="statReincidencia" class="text-sm font-black text-slate-800">0</p>
+                    <p id="percReincidencia" class="text-[9px] font-bold text-orange-500">0%</p>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+            <div id="slaColorBox" class="p-2.5 rounded-lg transition-colors duration-500 shrink-0"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+            <div class="min-w-0">
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">SLA Geral</p>
+                <p id="statSLA" class="text-xl font-black text-slate-800 leading-tight">0%</p>
+            </div>
+        </div>
+
+        <div class="js-details hidden bg-indigo-50/50 p-2 rounded-xl border border-indigo-100/50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
+            <div class="text-indigo-600 shrink-0"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></div>
+            <div class="min-w-0">
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">Troca Técnica</p>
+                <div class="flex items-baseline gap-1.5">
+                    <p id="statTroca" class="text-sm font-black text-slate-800">0</p>
+                    <p id="percTroca" class="text-[9px] font-bold text-indigo-500">0%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAllDetails() {
+    const details = document.querySelectorAll('.js-details');
+    const isHidden = details[0].classList.contains('hidden');
+
+    details.forEach(el => {
+        if (isHidden) {
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        } else {
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
+    });
+}
+</script>
 
         <div id="exportableSlaArea">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -1709,5 +1744,16 @@
         const csv = Papa.unparse(repairFullData, { delimiter: ";", quotes: true }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", "base_completa_corrigida.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 </script>
+<footer class="py-6 mt-8 border-t border-slate-100 text-center">
+    <p class="text-sm text-slate-400">
+        Criado por 
+        <a href="https://imberabrasil.mybeehome.com/directory/2617/profile" 
+           target="_blank" 
+           class="font-bold hover:text-blue-600 transition-colors">
+           Edson
+        </a> 
+        - Aprendiz de PowerBI
+    </p>
+</footer>
 </body>
 </html>
