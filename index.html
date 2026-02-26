@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Imbera</title>
+    <title>Dashboard ImberaBR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -133,10 +133,6 @@
         body.dark .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         body.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
 
-        /* Ajustes adicionais do Dark Mode para Visão Geral e Tabela */
-        body.dark #insightsContainer { background-color: #1e293b; border-color: #334155; }
-        body.dark #insightsText > div { background-color: #0f172a; border-color: #334155; }
-        body.dark #insightsText > div p.text-slate-700 { color: #f8fafc; }
         body.dark #tableContainerSLA table { background-color: #0f172a; }
         body.dark #tableContainerSLA thead tr { background-color: #1e293b !important; }
         body.dark #tableContainerSLA tbody tr { background-color: #0f172a; }
@@ -297,7 +293,7 @@
         <div>
             <h1 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-3">
                 <div class="bg-slate-800 p-2 rounded-lg text-white"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div>
-                Imbera Dashboard
+                ISABELY TE AMO
             </h1>
         </div>
         
@@ -364,29 +360,62 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                <div class="bg-blue-50 p-3 rounded-xl text-blue-600"><i data-lucide="triangle-alert" class="w-5 h-5"></i></div>
-                <div><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Total Aberturas</p><p id="statAberturas" class="text-xl font-black text-slate-800">0</p></div>
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-3 mb-8">
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 shrink-0"><i data-lucide="triangle-alert" class="w-5 h-5"></i></div>
+                <div class="min-w-0"><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Aberturas</p><p id="statAberturas" class="text-lg font-black text-slate-800">0</p></div>
             </div>
-            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                <div class="bg-emerald-50 p-3 rounded-xl text-emerald-600"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
-                <div><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Total Fechamentos</p><p id="statFechamentos" class="text-xl font-black text-slate-800">0</p></div>
+            
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 shrink-0"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+                <div class="min-w-0"><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Fechamentos</p><p id="statFechamentos" class="text-lg font-black text-slate-800">0</p></div>
             </div>
-            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                <div id="slaColorBox" class="p-3 rounded-xl transition-colors duration-500"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
-                <div><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">SLA Geral</p><p id="statSLA" class="text-xl font-black text-slate-800">0%</p></div>
+            
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                <div id="slaColorBox" class="p-2.5 rounded-lg transition-colors duration-500 shrink-0"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+                <div class="min-w-0"><p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">SLA Geral</p><p id="statSLA" class="text-lg font-black text-slate-800">0%</p></div>
+            </div>
+
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-1">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 shrink-0"><i data-lucide="package-minus" class="w-5 h-5"></i></div>
+                    <div class="min-w-0">
+                        <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">NTP</p>
+                        <div class="flex items-baseline gap-1.5">
+                            <p id="statNTP" class="text-lg font-black text-slate-800">0</p>
+                            <p id="percNTP" class="text-[10px] font-bold text-rose-500">0%</p>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="sendNtpToTab()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 p-1.5 rounded-lg transition-colors shrink-0" title="Enviar para Aba NTP">
+                    <i data-lucide="arrow-right-circle" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                <div class="bg-orange-50 p-2.5 rounded-lg text-orange-600 shrink-0"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></div>
+                <div class="min-w-0">
+                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Reincidência</p>
+                    <div class="flex items-baseline gap-1.5">
+                        <p id="statReincidencia" class="text-lg font-black text-slate-800">0</p>
+                        <p id="percReincidencia" class="text-[10px] font-bold text-orange-500">0%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                <div class="bg-indigo-50 p-2.5 rounded-lg text-indigo-600 shrink-0"><i data-lucide="refresh-cw" class="w-5 h-5"></i></div>
+                <div class="min-w-0">
+                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest truncate">Troca Técnica</p>
+                    <div class="flex items-baseline gap-1.5">
+                        <p id="statTroca" class="text-lg font-black text-slate-800">0</p>
+                        <p id="percTroca" class="text-[10px] font-bold text-indigo-500">0%</p>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div id="exportableSlaArea">
-            <div id="insightsContainer" class="bg-blue-50/50 p-6 rounded-3xl shadow-sm border border-blue-100 mb-6 flex flex-col gap-4 fade-in hidden">
-                <h3 class="text-xs font-black text-blue-800 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="lightbulb" class="w-4 h-4 text-blue-600"></i> Visão Geral
-                </h3>
-                <div id="insightsText" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
-            </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-start mb-4">
@@ -479,9 +508,21 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-wider flex items-center gap-2">
-                    <span class="w-1 h-3 bg-rose-500 rounded-full"></span> Evolução Diária de NTPs
-                </h3>
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1 h-3 bg-rose-500 rounded-full"></span> Evolução de NTPs
+                    </h3>
+                    
+                    <div class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-500">Mês</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="ntpViewToggle" onchange="toggleNtpTimeView()">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="text-[10px] font-bold text-slate-500">Dia</span>
+                    </div>
+                </div>
+                
                 <div id="ntpPercentBadge" class="text-xs text-slate-400 mb-2 text-right"></div>
                 <div class="chart-container"><canvas id="ntpChart"></canvas></div>
             </div>
@@ -755,7 +796,6 @@
         btn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
         document.getElementById('userDropdown').classList.add('hidden');
         
-        // Esconde menu admin tools
         document.getElementById('adminToolsMenu').classList.add('hidden');
         
         if(window.lucide) lucide.createIcons();
@@ -770,7 +810,6 @@
         btn.innerHTML = '<i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i>';
         btn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
         
-        // Mostra elementos admin-only e remove hidden do menu de ferramentas
         document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
         
         if(window.lucide) lucide.createIcons();
@@ -791,30 +830,25 @@
         if(typeof processNTPData === 'function') processNTPData();
     }
 
-    // --- CONFIGURAÇÃO DE FERIADOS ITU/SP 2025-2026 ---
     const feriadosSP = new Set([
-        // 2025
         "2025-01-01", "2025-01-25", "2025-03-03", "2025-03-04", "2025-03-05",
         "2025-04-18", "2025-04-21", "2025-05-01", "2025-06-19", "2025-07-09",
         "2025-09-07", "2025-10-12", "2025-11-02", "2025-11-15", "2025-11-20", "2025-12-25",
-        // 2026
         "2026-01-01", "2026-01-25", "2026-02-02", "2026-02-16", "2026-02-17",
         "2026-04-03", "2026-04-21", "2026-05-01", "2026-06-04", "2026-07-09",
         "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-11-20", "2026-12-25"
     ]);
 
-    // Função para adicionar dias úteis pulando fds e feriados de ITU/SP
     function addBusinessDays(startDate, daysToAdd) {
         let currentDate = new Date(startDate);
         let addedDays = 0;
-        let safeGuard = 0; // Proteção contra loop infinito
+        let safeGuard = 0; 
         
         while (addedDays < daysToAdd && safeGuard < 200) {
             currentDate.setDate(currentDate.getDate() + 1);
-            const dayOfWeek = currentDate.getDay(); // 0=Dom, 6=Sab
+            const dayOfWeek = currentDate.getDay(); 
             const isoDate = currentDate.toISOString().split('T')[0];
             
-            // Se não for Sábado, Domingo ou Feriado
             if (dayOfWeek !== 0 && dayOfWeek !== 6 && !feriadosSP.has(isoDate)) {
                 addedDays++;
             }
@@ -823,31 +857,25 @@
         return currentDate;
     }
 
-    // Nova Lógica de Vencimento Dinâmico por SLA
     function calcularVencimento(dataAberturaIso, sla, estadoIgnorado) {
         if (!dataAberturaIso) return null;
-        // Tratamento da data
         const parts = dataAberturaIso.split('-');
-        // new Date(y, m-1, d) para evitar UTC shift
         const startDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
 
         if (isNaN(startDate.getTime())) return null;
 
-        let daysToAdd = 5; // Padrão BAIXO ou desconhecido
+        let daysToAdd = 5; 
         const slaUpper = sla ? sla.toUpperCase().trim() : "BAIXO";
 
         if (slaUpper === "MUITO ELEVADO") daysToAdd = 1;
         else if (slaUpper === "ELEVADO") daysToAdd = 2;
         else if (slaUpper === "MEDIO" || slaUpper === "MÉDIO") daysToAdd = 3;
-        // Se for BAIXO ou outro, mantem 5
 
         const dueDate = addBusinessDays(startDate, daysToAdd);
         return dueDate.toISOString().split('T')[0];
     }
 
     function calculateSmartStatus(originalStatus, vencimentoIso, dataFechamentoIso = null, statusPrazoCsv = null) { 
-        // LÓGICA 100% DINÂMICA (IGNORANDO O CSV) - PEDIDO DO USUÁRIO
-        // Se estiver fechado, é finalizado.
         const statusUpper = (originalStatus || '').toUpperCase(); 
         
         if (dataFechamentoIso || statusUpper.includes('FINAL') || statusUpper.includes('CONCLU') || statusUpper.includes('ENCERRAD') || statusUpper.includes('FECHAD') || statusUpper.includes('ATENDID')) { 
@@ -856,7 +884,6 @@
         
         if (!vencimentoIso) { return { text: 'S/ Data', class: 'text-slate-500 italic bg-slate-100 px-2 py-0.5 rounded uppercase tracking-wide text-[9px]' }; } 
         
-        // Dinâmica Real: Compara HOJE com Vencimento Calculado
         const today = new Date(); 
         today.setHours(0,0,0,0); 
         
@@ -869,7 +896,6 @@
         } else if (vencDate.getTime() === today.getTime()) { 
             return { text: 'Vence Hoje', class: 'text-orange-700 font-black bg-orange-100 px-2 py-0.5 rounded border border-orange-200 uppercase tracking-wide text-[9px]' }; 
         } else { 
-            // Verifica se é amanhã
             const amanha = new Date(today); amanha.setDate(today.getDate()+1);
             if(vencDate.getTime() === amanha.getTime()) {
                 return { text: 'Vence Amanhã', class: 'text-yellow-700 font-bold bg-yellow-100 px-2 py-0.5 rounded border border-yellow-200 uppercase tracking-wide text-[9px]' };
@@ -888,7 +914,7 @@
     Chart.defaults.layout.padding = { top: 20, right: 20, left: 10, bottom: 10 };
 
     let rawData = []; let ntpRawData = []; let dbRawData = []; let dbColumns = [];
-    let charts = {}; let currentYear = 'Todos'; let slaTimeView = 'monthly';
+    let charts = {}; let currentYear = 'Todos'; let slaTimeView = 'monthly'; let ntpTimeView = 'monthly'; // MUDANÇA
     let ntpFilterState = {}; let slaFilterState = {}; let dbFilterState = {}; let ordersFilterState = {};
     let historyStack = []; const MAX_HISTORY = 5;
 
@@ -925,33 +951,20 @@
         saveAllData(); init(); updateUndoButton();
     }
     
-    // --- FUNÇÃO DE LIMPEZA GERAL ---
     function fullReset() {
         if(!confirm("TEM CERTEZA? Isso apagará todos os dados importados e gráficos.")) return;
         
-        // 1. Limpar Storage
         localStorage.removeItem('sla_dashboard_data_v10');
         localStorage.removeItem('ntp_dashboard_data_v10');
         localStorage.removeItem('db_dashboard_data_v10');
         
-        // 2. Zerar Variáveis
-        rawData = [];
-        ntpRawData = [];
-        dbRawData = [];
-        dbColumns = [];
-        historyStack = [];
+        rawData = []; ntpRawData = []; dbRawData = []; dbColumns = []; historyStack = [];
 
-        // 3. Resetar Inputs
         document.getElementById('csvInputAbertura').value = '';
         document.getElementById('csvInputFechamento').value = '';
         document.getElementById('ntpCsvInput').value = '';
         
-        // 4. Atualizar Interface
-        init();
-        processNTPData();
-        renderDatabase();
-        updateUndoButton();
-        
+        init(); processNTPData(); renderDatabase(); updateUndoButton();
         alert("Dashboard limpo com sucesso!");
     }
 
@@ -1061,12 +1074,14 @@
         if (!rows || !rows.length) return;
         let dataTargetHdr = forcedType === 'abertura' ? findHeader(headers, ['AB', 'Data Abertura', 'date', 'emissao']) : findHeader(headers, ['FC', 'Fechamento', 'Conclusao', 'Data Fim']);
         const unidadeHdr = headers[0]; const statusHdr = findHeader(headers, ['status', 'situacao', 'fase', 'estado']); const osHdr = findHeader(headers, ['os', 'pedido', 'chamado', 'order', 'protocolo']); 
-        
-        // --- Identificação das Colunas SLA ---
         const colClassificacaoSla = findHeader(headers, ['SLA DE ATENDIMENTO', 'Classificação', 'Classificacao', 'Prioridade', 'SLA', 'Nível']);
-        // -----------------------------------------------
-
         const estadoHdr = findHeader(headers, ['UF', 'Estado', 'ESTADO']); 
+        
+        // Headers para métricas adicionais com extra robustez e validações normalizadas
+        const colLancPeca = findHeader(headers, ['DATA LANÇAMENTO DA PEÇA', 'DATA LANCAMENTO DA PECA', 'DATA LANÇAMENTO DA PECA']);
+        const colSituacao = findHeader(headers, ['Situação', 'Situacao', 'SITUACAO', 'SITUAÇÃO']);
+        const colSolucao = findHeader(headers, ['Solução', 'Solucao', 'SOLUCAO', 'SOLUÇÃO', 'AM', 'Solução Final', 'Solucao Final']);
+        
         const dataMap = {}; rawData.forEach(item => { dataMap[item.idKey] = item; }); 
         
         rows.forEach(r => {
@@ -1076,7 +1091,8 @@
             if (dtIso) { rowYear = parseInt(dtIso.split('-')[0]); const mName = getMonthNameFromIso(dtIso); if (mName) mes = mName; }
             let estado = estadoHdr && r[estadoHdr] ? r[estadoHdr] : "SP";
             const idKey = `${unidade}-${mes}-${rowYear}`;
-            if (!dataMap[idKey]) dataMap[idKey] = { idKey, unidade, estado: estado, mes, ano: rowYear, aberturas: 0, fechamentos: 0, ordersList: [], fechamentosList: [] };
+            
+            if (!dataMap[idKey]) dataMap[idKey] = { idKey, unidade, estado: estado, mes, ano: rowYear, aberturas: 0, fechamentos: 0, ntps: 0, reincidencias: 0, trocas: 0, ordersList: [], fechamentosList: [] };
             
             if (forcedType === 'fechamento') { 
                 if(!dataMap[idKey].fechamentosList) dataMap[idKey].fechamentosList = []; 
@@ -1086,15 +1102,41 @@
                 const st = statusHdr ? (r[statusHdr] || 'Indefinido') : 'Indefinido'; 
                 const os = osHdr ? (r[osHdr] || 'N/A') : 'N/A';
                 
-                // LÓGICA DE VENCIMENTO: SEMPRE CALCULADO PELA SLA E DATA DE ABERTURA
                 let classificacao = colClassificacaoSla ? (r[colClassificacaoSla] || 'BAIXO') : 'BAIXO'; 
                 let finalVencIso = null;
                 let finalVencStr = "";
 
                 if (dtIso) {
-                    // Força lógica de Itu/SP conforme pedido
                     finalVencIso = calcularVencimento(dtIso, classificacao, "SP");
                     if(finalVencIso) finalVencStr = finalVencIso.split('-').reverse().join('/');
+                }
+
+                // Lógica de Identificação Robusta
+                let isNtp = false;
+                if (colLancPeca && r[colLancPeca] && String(r[colLancPeca]).trim() !== '') {
+                    dataMap[idKey].ntps++;
+                    isNtp = true;
+                }
+                
+                let isReinc = false;
+                if (colSituacao && r[colSituacao]) {
+                    const valSit = String(r[colSituacao]).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    if (valSit.includes('reincidencia')) {
+                        dataMap[idKey].reincidencias++;
+                        isReinc = true;
+                    }
+                }
+                
+                // MUDANÇA: Validação exata e mais robusta para Troca Técnica
+                let isTroca = false;
+                if (colSolucao && r[colSolucao]) {
+                    const valSolOriginal = String(r[colSolucao]).toLowerCase();
+                    if (valSolOriginal.includes('solicitar troca de equipamento') || 
+                        valSolOriginal.includes('troca técnica') || 
+                        valSolOriginal.includes('troca tecnica')) {
+                        dataMap[idKey].trocas++;
+                        isTroca = true;
+                    }
                 }
 
                 if(!dataMap[idKey].ordersList) dataMap[idKey].ordersList = []; 
@@ -1105,7 +1147,9 @@
                     dateIso: dtIso, 
                     vencimento: finalVencStr, 
                     vencimentoIso: finalVencIso,
-                    classificacaoSla: classificacao // Armazena para referência
+                    classificacaoSla: classificacao,
+                    isNtp: isNtp,
+                    rawRow: r
                 }); 
                 dataMap[idKey].aberturas++; 
             }
@@ -1113,19 +1157,33 @@
         rawData = Object.values(dataMap); if(autoSave) { try { localStorage.setItem('sla_dashboard_data_v10', JSON.stringify(rawData)); init(); } catch(e) {} }
     }
 
+    // MUDANÇA: Função de parse NTP agora prioriza a data de lançamento da peça
     function parseNTPCSV(rows, headers, autoSave = true) {
         if (!rows || !rows.length) return;
-        const colData = findHeader(headers, ['Data Abertura', 'Abertura', 'Criado em', 'Data']); const colFinalizado = findHeader(headers, ['Data Fechamento', 'Conclusão', 'Encerrado', 'Fim']); const colStatus = findHeader(headers, ['Status', 'Situacao', 'Status do Pedido']); const colId = findHeader(headers, ['Chamado', 'ID', 'OS', 'Ticket']); const colUnidade = findHeader(headers, ['Unidade', 'Cliente', 'Loja']); const colTecnico = findHeader(headers, ['Técnico', 'Atendente', 'Responsável']); const colPosto = findHeader(headers, ['Posto', 'Nome Posto', 'Autorizada', 'Prestador']); 
+        const colDataOriginal = findHeader(headers, ['Data Abertura', 'Abertura', 'Criado em', 'Data']); 
+        // Procurando a coluna de LANÇAMENTO DA PEÇA (S)
+        const colDataLancPeca = findHeader(headers, ['DATA LANÇAMENTO DA PEÇA', 'DATA LANCAMENTO DA PECA', 'DATA LANÇAMENTO DA PECA']);
         
+        const colFinalizado = findHeader(headers, ['Data Fechamento', 'Conclusão', 'Encerrado', 'Fim']); const colStatus = findHeader(headers, ['Status', 'Situacao', 'Status do Pedido']); const colId = findHeader(headers, ['Chamado', 'ID', 'OS', 'Ticket']); const colUnidade = findHeader(headers, ['Unidade', 'Cliente', 'Loja']); const colTecnico = findHeader(headers, ['Técnico', 'Atendente', 'Responsável']); const colPosto = findHeader(headers, ['Posto', 'Nome Posto', 'Autorizada', 'Prestador']); 
         const colClassificacao = findHeader(headers, ['SLA DE ATENDIMENTO', 'Classificação', 'Classificacao', 'Prioridade', 'SLA', 'Nível']);
+        
         if (!dbColumns.includes('Vencimento Calculado (Auto)')) dbColumns.push('Vencimento Calculado (Auto)'); if (!dbColumns.includes('Status Prazo Calc')) dbColumns.push('Status Prazo Calc');
         let data = ntpRawData; 
+        
         rows.forEach(row => {
             const rowStr = JSON.stringify(row).toUpperCase(); const statusVal = colStatus ? (row[colStatus] || '') : '';
-            let rawDate = colData ? (row[colData] || '') : ''; let dateIso = "N/A"; let year = null; let dtParsed = parseDateToIso(rawDate); if(dtParsed) { dateIso = dtParsed; year = parseInt(dtParsed.split('-')[0]); }
+            
+            // Lógica para utilizar a DATA LANÇAMENTO DA PEÇA como prioridade para o gráfico
+            let rawDate = "";
+            if (colDataLancPeca && row[colDataLancPeca] && String(row[colDataLancPeca]).trim() !== '') {
+                rawDate = row[colDataLancPeca];
+            } else if (colDataOriginal && row[colDataOriginal]) {
+                rawDate = row[colDataOriginal];
+            }
+            
+            let dateIso = "N/A"; let year = null; let dtParsed = parseDateToIso(rawDate); if(dtParsed) { dateIso = dtParsed; year = parseInt(dtParsed.split('-')[0]); }
             let rawFim = colFinalizado ? (row[colFinalizado] || '') : ''; let fimIso = parseDateToIso(rawFim);
             
-            // Calculo Dinâmico
             let vencIso = null;
             let vencStr = "";
             
@@ -1140,7 +1198,9 @@
             let smart = calculateSmartStatus(statusVal, vencIso, fimIso);
             row['Vencimento Calculado (Auto)'] = vencStr; row['Status Prazo Calc'] = smart.text; dbRawData.push(row);
             
-            if (!(rowStr.includes('NTP') || statusVal.toUpperCase().includes('NTP'))) return;
+            let isExplicitNTP = rowStr.includes('NTP') || statusVal.toUpperCase().includes('NTP');
+            if (!isExplicitNTP && !row._forceNTP) return;
+            
             let rawUnit = colUnidade ? (row[colUnidade] || '') : ''; let unitClean = cleanUnitName(rawUnit.replace(/"/g, '')); let rawPosto = colPosto ? (row[colPosto]||"") : "";
             
             data.push({ 
@@ -1165,24 +1225,17 @@
     function changeUnidade(val) { activeUnidade = val; updateDashboard(); }
     function changeEstado(val) { activeEstado = val; updateDashboard(); }
 
-    function updateInsights(data) {
-        const container = document.getElementById('insightsContainer'); const textDiv = document.getElementById('insightsText');
-        if(!data || data.length === 0) { container.classList.add('hidden'); return; }
-        let totalAbs = 0; let totalFec = 0; let unids = {};
-        data.forEach(d => { totalAbs += (d.calcAberturas || 0); totalFec += (d.calcFechamentos || 0); if(!unids[d.unidade]) unids[d.unidade] = { abs: 0, fec: 0 }; unids[d.unidade].abs += (d.calcAberturas || 0); unids[d.unidade].fec += (d.calcFechamentos || 0); });
-        if(totalAbs === 0) { container.classList.add('hidden'); return; }
-        container.classList.remove('hidden');
-        let bestUnid = { name: '-', sla: -1 }; let worstUnid = { name: '-', sla: 101 }; let highestVol = { name: '-', vol: 0 };
-        Object.keys(unids).forEach(k => { let u = unids[k]; if(u.abs > 0) { let sla = (u.fec / u.abs) * 100; if(sla > 100) sla = 100; if(sla > bestUnid.sla && u.abs > 5) { bestUnid = { name: k, sla: sla }; } if(sla < worstUnid.sla) { worstUnid = { name: k, sla: sla }; } if(u.abs > highestVol.vol) { highestVol = { name: k, vol: u.abs }; } } });
-        let geralSla = ((totalFec / totalAbs) * 100); if(geralSla>100) geralSla=100;
-        let html = `<div class="bg-white p-3 rounded-xl border border-blue-100/50 shadow-sm transition-transform hover:-translate-y-1"><p class="text-[10px] uppercase text-slate-400 font-bold">Desempenho Geral</p><p class="text-sm font-black text-slate-700 mt-1">SLA atual é de <span class="text-blue-600">${geralSla.toFixed(1)}%</span></p></div><div class="bg-white p-3 rounded-xl border border-blue-100/50 shadow-sm transition-transform hover:-translate-y-1"><p class="text-[10px] uppercase text-slate-400 font-bold">Melhor Desempenho (SLA)</p><p class="text-sm font-black text-emerald-600 mt-1 truncate" title="${bestUnid.name}">${bestUnid.name !== '-' ? bestUnid.name + ' (' + bestUnid.sla.toFixed(1) + '%)' : 'N/D'}</p></div><div class="bg-white p-3 rounded-xl border border-blue-100/50 shadow-sm transition-transform hover:-translate-y-1"><p class="text-[10px] uppercase text-slate-400 font-bold">Ponto de Atenção (SLA)</p><p class="text-sm font-black text-rose-600 mt-1 truncate" title="${worstUnid.name}">${worstUnid.name !== '-' ? worstUnid.name + ' (' + worstUnid.sla.toFixed(1) + '%)' : 'N/D'}</p></div><div class="bg-white p-3 rounded-xl border border-blue-100/50 shadow-sm transition-transform hover:-translate-y-1"><p class="text-[10px] uppercase text-slate-400 font-bold">Maior Volume (Aberturas)</p><p class="text-sm font-black text-slate-700 mt-1 truncate" title="${highestVol.name}">${highestVol.name !== '-' ? highestVol.name + ' (' + highestVol.vol + ' unid.)' : 'N/D'}</p></div>`; textDiv.innerHTML = html; lucide.createIcons();
-    }
-
-    // Toggle de Visualização Diária/Mensal
     function toggleSlaTimeView() { 
         const checkBox = document.getElementById('slaViewToggle');
         slaTimeView = checkBox.checked ? 'daily' : 'monthly'; 
         updateDashboard(); 
+    }
+    
+    // MUDANÇA: Nova função de Toggle para o Chart de NTP
+    function toggleNtpTimeView() {
+        const checkBox = document.getElementById('ntpViewToggle');
+        ntpTimeView = checkBox.checked ? 'daily' : 'monthly'; 
+        filterNtpTable(); // Re-renderiza chamando a cascata do filtro NTP
     }
 
     function updateDashboard() {
@@ -1190,12 +1243,77 @@
         if (typeof activeUnidade !== 'undefined' && activeUnidade !== "Todas") filteredObjects = filteredObjects.filter(d => d.unidade === activeUnidade);
         const estSelect = document.getElementById('estadoFilter'); if(estSelect){ const uniqueEst = [...new Set(filteredObjects.map(d => d.estado))].sort(); const prev = estSelect.value; estSelect.innerHTML = '<option value="Todos">Todos Estados</option>'; uniqueEst.forEach(uf => { estSelect.innerHTML += `<option value="${uf}">${uf}</option>`; }); estSelect.value = uniqueEst.includes(prev) ? prev : "Todos"; }
         if(typeof activeEstado !== 'undefined' && activeEstado !== "Todos") filteredObjects = filteredObjects.filter(d => d.estado === activeEstado);
+        
         let totalAbs = 0; let totalFec = 0;
-        let displayData = filteredObjects.map(obj => { totalAbs += (obj.aberturas || 0); totalFec += (obj.fechamentos || 0); return { ...obj, calcAberturas: obj.aberturas, calcFechamentos: obj.fechamentos }; });
+        let totalNtp = 0; let totalReinc = 0; let totalTroca = 0;
+
+        let displayData = filteredObjects.map(obj => { 
+            totalAbs += (obj.aberturas || 0); 
+            totalFec += (obj.fechamentos || 0); 
+            totalNtp += (obj.ntps || 0);
+            totalReinc += (obj.reincidencias || 0);
+            totalTroca += (obj.trocas || 0);
+            return { ...obj, calcAberturas: obj.aberturas, calcFechamentos: obj.fechamentos }; 
+        });
+
         let slaRate = totalAbs > 0 ? (totalFec / totalAbs) * 100 : 0; if(slaRate > 100) slaRate = 100;
-        document.getElementById('statAberturas').innerText = totalAbs.toLocaleString(); document.getElementById('statFechamentos').innerText = totalFec.toLocaleString(); document.getElementById('statSLA').innerText = slaRate.toFixed(1) + '%';
-        const box = document.getElementById('slaColorBox'); if(box) box.className = `p-3 rounded-xl transition-colors ${slaRate>=90?'bg-emerald-100 text-emerald-600':(slaRate>=75?'bg-yellow-100 text-yellow-600':'bg-rose-100 text-rose-600')}`;
-        updateInsights(displayData); updateSlaCharts(displayData); filterSlaTable(displayData, true);
+        
+        document.getElementById('statAberturas').innerText = totalAbs.toLocaleString(); 
+        document.getElementById('statFechamentos').innerText = totalFec.toLocaleString(); 
+        document.getElementById('statSLA').innerText = slaRate.toFixed(1) + '%';
+        const box = document.getElementById('slaColorBox'); if(box) box.className = `p-2.5 rounded-lg transition-colors shrink-0 ${slaRate>=90?'bg-emerald-100 text-emerald-600':(slaRate>=75?'bg-yellow-100 text-yellow-600':'bg-rose-100 text-rose-600')}`;
+        
+        document.getElementById('statNTP').innerText = totalNtp.toLocaleString();
+        document.getElementById('percNTP').innerText = totalAbs > 0 ? ((totalNtp/totalAbs)*100).toFixed(1) + '%' : '0%';
+        
+        document.getElementById('statReincidencia').innerText = totalReinc.toLocaleString();
+        document.getElementById('percReincidencia').innerText = totalAbs > 0 ? ((totalReinc/totalAbs)*100).toFixed(1) + '%' : '0%';
+        
+        document.getElementById('statTroca').innerText = totalTroca.toLocaleString();
+        document.getElementById('percTroca').innerText = totalAbs > 0 ? ((totalTroca/totalAbs)*100).toFixed(1) + '%' : '0%';
+
+        updateSlaCharts(displayData); filterSlaTable(displayData, true);
+    }
+
+    function sendNtpToTab() {
+        let ntpRows = [];
+        let filteredObjects = rawData.filter(d => checkDateFilter(d));
+        if (typeof activeUnidade !== 'undefined' && activeUnidade !== "Todas") filteredObjects = filteredObjects.filter(d => d.unidade === activeUnidade);
+        if (typeof activeEstado !== 'undefined' && activeEstado !== "Todos") filteredObjects = filteredObjects.filter(d => d.estado === activeEstado);
+
+        filteredObjects.forEach(item => {
+            if(item.ordersList) {
+                item.ordersList.forEach(order => {
+                    if(order.isNtp && order.rawRow) {
+                        ntpRows.push({ ...order.rawRow, _forceNTP: true });
+                    }
+                });
+            }
+        });
+
+        if (ntpRows.length === 0) {
+            alert("Nenhuma NTP encontrada nos dados filtrados.");
+            return;
+        }
+
+        let headers = Object.keys(ntpRows[0]);
+        
+        let existingOs = new Set(ntpRawData.map(n => n.id));
+        let newRows = ntpRows.filter(r => {
+            let osKey = r['OS'] || r['os'] || r['Chamado'] || r['ID']; 
+            if (!osKey) return true;
+            if (existingOs.has(osKey)) return false;
+            return true;
+        });
+
+        if (newRows.length > 0) {
+            parseNTPCSV(newRows, headers, true);
+            alert(`${newRows.length} novas NTPs enviadas para a aba NTP!`);
+        } else {
+            alert("As NTPs atuais já foram enviadas ou cadastradas na aba NTP.");
+        }
+        
+        switchTab('ntp');
     }
 
     function updateSlaCharts(data) {
@@ -1206,7 +1324,6 @@
             const mData = months.map(m => { const sub = data.filter(d => d.mes === m); const abs = sub.reduce((a,c) => a+(c.calcAberturas||0), 0); const fec = sub.reduce((a,c) => a+(c.calcFechamentos||0), 0); let sla = abs > 0 ? (fec/abs)*100 : 0; if(sla > 100) sla = 100; return { m, abs, fec, sla }; });
             labels = months.map(m=>m.substring(0,3)); absData = mData.map(d=>d.abs); fecData = mData.map(d=>d.fec); slaData = mData.map(d=>d.sla);
         } else {
-            // VIEW DIÁRIA
             let dailyMap = {}; 
             data.forEach(item => { 
                 if(item.ordersList) { 
@@ -1282,26 +1399,19 @@
         currentOrdersList = list; 
         document.getElementById('ordersModalTitle').innerText = `${item.unidade} - ${item.mes} (${item.ano})`; 
         
-        // Reseta os filtros antes de abrir a tabela
         ordersFilterState = {};
-        
         renderOrdersList(currentOrdersList); 
         document.getElementById('ordersModal').classList.remove('hidden'); 
     }
     let currentOrdersList = [];
     
-    // --- LÓGICA DE RENDERIZAÇÃO DO MODAL LUPA (Colunas D e E em ação) ---
     function renderOrdersList(list) { 
         const tbody = document.getElementById('ordersModalBody'); if(!tbody) return; 
         if(!list || list.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">Nenhum pedido neste período.</td></tr>'; return; } 
         let html = ''; 
         list.slice(0, 500).forEach(order => { 
             const osLink = (order.os && order.os !== 'N/A' && order.os !== 'Memória Otimizada') ? `<a href="https://imbera.telecontrol.com.br/assist/admin/os_press.php?os=${order.os}" target="_blank" class="text-blue-600 font-bold hover:underline">${order.os}</a>` : (order.os || 'N/A'); 
-            
-            // STATUS DINÂMICO
             const dynStatus = calculateSmartStatus(order.statusOriginal, order.vencimentoIso, order.dataFechamentoIso); 
-            
-            // Texto para coluna combinada
             const colCombined = `${order.classificacaoSla || '-'} / ${order.statusOriginal || '-'}`;
 
             html += `<tr class="hover:bg-blue-50 transition-colors">
@@ -1315,7 +1425,6 @@
         tbody.innerHTML = html; 
     }
     
-    // Funções de Controle para Dropdown de Filtros (Modal de Pedidos)
     function toggleOrdersFilter(e, key) {
         e.stopPropagation();
         ['os','data','vencimento','statusDyn','classificacao'].forEach(k => {
@@ -1326,7 +1435,6 @@
         if(!dropdown) return;
         if(dropdown.classList.contains('show')) { dropdown.classList.remove('show'); return; }
         
-        // Coleta valores únicos para o filtro selecionado
         let uniqueValues = new Set();
         currentOrdersList.forEach(o => {
             let val = '';
@@ -1363,7 +1471,6 @@
         filterOrdersGrid();
     }
 
-    // Filtragem acionada pelos dropdowns do Modal
     function filterOrdersGrid() {
         const filtered = currentOrdersList.filter(o => {
             const dynStatus = calculateSmartStatus(o.statusOriginal, o.vencimentoIso, o.dataFechamentoIso);
@@ -1412,16 +1519,87 @@
 
     function updateNtpVisuals(data) {
         const isDark = document.body.classList.contains('dark'); const chartTextColor = isDark ? '#94a3b8' : '#64748b'; Chart.defaults.color = chartTextColor;
-        const monthsLabels = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; const monthCounts = Array(12).fill(0); const statusCounts = { 'Finalizados': Array(12).fill(0), 'Pendentes': Array(12).fill(0) }; data.forEach(d => { if(d.data && d.data !== 'N/A') { const parts = d.data.split('-'); const monthIndex = parseInt(parts[1]) - 1; if (monthIndex >= 0 && monthIndex < 12) { monthCounts[monthIndex]++; if((d.originalStatus || d.status || "").toUpperCase().includes("FINAL") || d.finalizado) statusCounts['Finalizados'][monthIndex]++; else statusCounts['Pendentes'][monthIndex]++; } } });
-        if(charts['ntpLine']) charts['ntpLine'].destroy(); const ctxLine = document.getElementById('ntpChart').getContext('2d'); const gradLine = ctxLine.createLinearGradient(0, 0, 0, 300); gradLine.addColorStop(0, 'rgba(244, 63, 94, 0.4)'); gradLine.addColorStop(1, 'rgba(244, 63, 94, 0)'); charts['ntpLine'] = new Chart(ctxLine, { type: 'line', data: { labels: monthsLabels, datasets: [{ label: 'NTPs', data: monthCounts, borderColor: '#f43f5e', borderWidth: 3, backgroundColor: gradLine, fill: true, tension: 0.4, pointRadius: 0 }] }, options: { responsive:true, maintainAspectRatio:false, layout: { padding: { top: 20, right: 10, left: 10, bottom: 0 } }, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks: {color: chartTextColor}}, y:{beginAtZero:true, grace: '5%', ticks: {color: chartTextColor}}} }});
+        
+        // MUDANÇA: Lógica de visão Diária vs Mensal para o Gráfico de NTP
+        let labelsLine = [];
+        let ntpChartData = [];
+        
+        if (ntpTimeView === 'monthly') {
+            labelsLine = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+            const monthCounts = Array(12).fill(0);
+            data.forEach(d => { 
+                if(d.data && d.data !== 'N/A') { 
+                    const parts = d.data.split('-'); 
+                    const monthIndex = parseInt(parts[1]) - 1; 
+                    if (monthIndex >= 0 && monthIndex < 12) { 
+                        monthCounts[monthIndex]++; 
+                    } 
+                } 
+            });
+            ntpChartData = monthCounts;
+        } else {
+            let dailyMap = {};
+            data.forEach(d => {
+                if(d.data && d.data !== 'N/A') {
+                    if(!dailyMap[d.data]) dailyMap[d.data] = 0;
+                    dailyMap[d.data]++;
+                }
+            });
+            let allDates = Object.keys(dailyMap).sort();
+            labelsLine = allDates.map(d => { const parts = d.split('-'); return `${parts[2]}/${parts[1]}`; });
+            ntpChartData = allDates.map(d => dailyMap[d]);
+        }
+
+        const statusCounts = { 'Finalizados': Array(12).fill(0), 'Pendentes': Array(12).fill(0) }; 
+        data.forEach(d => { 
+            if(d.data && d.data !== 'N/A') { 
+                const parts = d.data.split('-'); 
+                const monthIndex = parseInt(parts[1]) - 1; 
+                if (monthIndex >= 0 && monthIndex < 12) { 
+                    if((d.originalStatus || d.status || "").toUpperCase().includes("FINAL") || d.finalizado) statusCounts['Finalizados'][monthIndex]++; 
+                    else statusCounts['Pendentes'][monthIndex]++; 
+                } 
+            } 
+        });
+
+        if(charts['ntpLine']) charts['ntpLine'].destroy(); 
+        const ctxLine = document.getElementById('ntpChart').getContext('2d'); 
+        const gradLine = ctxLine.createLinearGradient(0, 0, 0, 300); gradLine.addColorStop(0, 'rgba(244, 63, 94, 0.4)'); gradLine.addColorStop(1, 'rgba(244, 63, 94, 0)'); 
+        charts['ntpLine'] = new Chart(ctxLine, { 
+            type: 'line', 
+            data: { 
+                labels: labelsLine, 
+                datasets: [{ 
+                    label: 'NTPs', 
+                    data: ntpChartData, 
+                    borderColor: '#f43f5e', 
+                    borderWidth: 3, 
+                    backgroundColor: gradLine, 
+                    fill: true, 
+                    tension: 0.4, 
+                    pointRadius: ntpTimeView === 'daily' ? 2 : 0 
+                }] 
+            }, 
+            options: { 
+                responsive:true, 
+                maintainAspectRatio:false, 
+                layout: { padding: { top: 20, right: 10, left: 10, bottom: 0 } }, 
+                plugins:{legend:{display:false}}, 
+                scales:{
+                    x:{grid:{display:false}, ticks: {color: chartTextColor, maxTicksLimit: ntpTimeView === 'daily' ? 12 : 12}}, 
+                    y:{beginAtZero:true, grace: '5%', ticks: {color: chartTextColor}}
+                } 
+            }
+        });
+
         const counts = {}; data.forEach(d => { counts[d.unidade] = (counts[d.unidade]||0) + 1; }); const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 10); if(charts['ntpBar']) charts['ntpBar'].destroy(); charts['ntpBar'] = new Chart(document.getElementById('ntpBarChart'), { type: 'bar', data: { labels: sorted.map(i => i[0]), datasets: [{ label: 'Qtd', data: sorted.map(i => i[1]), backgroundColor: ['#1e293b', '#334155', '#475569', '#64748b', '#94a3b8'], borderRadius:4 }] }, options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, layout: { padding: { right: 30, left: 0 } }, plugins:{legend:{display:false}}, scales:{x:{display:false, ticks: {color: chartTextColor}}, y:{grid:{display:false}, ticks: {color: chartTextColor}}} }});
-        if(charts['ntpYear']) charts['ntpYear'].destroy(); charts['ntpYear'] = new Chart(document.getElementById('ntpYearChart'), { type: 'bar', data: { labels: monthsLabels, datasets: [{ label: 'Finalizados', data: statusCounts['Finalizados'], backgroundColor: '#10b981' }, { label: 'Pendentes', data: statusCounts['Pendentes'], backgroundColor: '#f43f5e' }] }, options: { responsive:true, maintainAspectRatio:false, layout: { padding: { top: 20, right: 0 } }, plugins:{ legend:{ position:'top', labels:{boxWidth:10, font:{size:9}, color: chartTextColor} }, datalabels: { display: false } }, scales:{ x:{ stacked:true, grid:{display:false}, ticks: {color: chartTextColor} }, y:{ stacked:true, beginAtZero:true, grace: '5%', ticks: {color: chartTextColor} } } }});
+        if(charts['ntpYear']) charts['ntpYear'].destroy(); charts['ntpYear'] = new Chart(document.getElementById('ntpYearChart'), { type: 'bar', data: { labels: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"], datasets: [{ label: 'Finalizados', data: statusCounts['Finalizados'], backgroundColor: '#10b981' }, { label: 'Pendentes', data: statusCounts['Pendentes'], backgroundColor: '#f43f5e' }] }, options: { responsive:true, maintainAspectRatio:false, layout: { padding: { top: 20, right: 0 } }, plugins:{ legend:{ position:'top', labels:{boxWidth:10, font:{size:9}, color: chartTextColor} }, datalabels: { display: false } }, scales:{ x:{ stacked:true, grid:{display:false}, ticks: {color: chartTextColor} }, y:{ stacked:true, beginAtZero:true, grace: '5%', ticks: {color: chartTextColor} } } }});
+        
         const totalAll = ntpRawData.length || 1; document.getElementById('ntpPercentBadge').innerText = `${data.length} NTPs (${((data.length/totalAll)*100).toFixed(1)}% do DB)`;
         
         const tbody = document.getElementById('ntpTableBody'); if(!tbody) return; if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-sm text-slate-400 italic">Nenhum registro encontrado.</td></tr>'; return; }
         const htmlRows = []; 
         data.slice(0, 300).forEach((row) => { 
-            // CÁLCULO DINÂMICO NTP: 
             const dynSmart = calculateSmartStatus(row.originalStatus || row.status, row.vencimentoIso, row.finalizadoIso);
             row.status = dynSmart.text; row.statusClass = dynSmart.class;
             
