@@ -8,1752 +8,619 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; transition: background-color 0.3s; }
-        .chart-container { position: relative; height: 300px; width: 100%; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Navegação Superior */
-        .nav-btn.active { background-color: #1e293b; color: white; border-color: #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .nav-btn.inactive { background-color: white; color: #64748b; border: 1px solid #e2e8f0; }
-        .nav-btn.inactive:hover { background-color: #f8fafc; color: #334155; }
-        
-        .filter-icon { cursor: pointer; color: #94a3b8; font-size: 0.7rem; margin-left: 6px; }
-        .filter-icon:hover { color: #2563eb; }
-        .th-content { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-        
-        th { position: relative; } 
-        
-        /* Dropdown customizado */
-        .db-select { 
-            position: absolute; top: 100%; left: 0; margin-top: 5px; z-index: 50; 
-            background: white; border: 1px solid #e2e8f0; 
-            border-radius: 6px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2); 
-            padding: 6px; max-height: 300px; overflow-y: auto; display: none; 
-            width: 220px; text-align: left; font-weight: normal;
-        }
-        .db-select.show { display: block; }
-        .db-select div { padding: 8px 10px; font-size: 11px; cursor: pointer; border-bottom: 1px solid #f1f5f9; color: #334155; }
-        .db-select div:last-child { border-bottom: none; }
-        .db-select div:hover { background-color: #f0f9ff; color: #0284c7; font-weight: bold; }
-        
-        .upload-menu {
-            position: absolute; top: 100%; right: 0; z-index: 60;
-            background: white; border: 1px solid #e2e8f0;
-            border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            padding: 4px; min-width: 180px; display: none; margin-top: 4px;
-        }
-        .upload-menu.show { display: block; animation: fadeIn 0.1s ease-out; }
-        .upload-menu button {
-            width: 100%; text-align: left; padding: 10px 12px;
-            font-size: 11px; font-weight: bold; color: #475569;
-            border-radius: 6px; transition: background 0.2s; display: flex; align-items: center; gap: 8px;
-        }
-        .upload-menu button:hover { background-color: #f1f5f9; color: #0f172a; }
-        .upload-menu .divider { height: 1px; background-color: #e2e8f0; margin: 4px 0; }
-        
-        .modal-lg { max-width: 900px; }
-
-        #loadingOverlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 500;
-            display: none; align-items: center; justify-content: center; flex-direction: column;
-            backdrop-filter: blur(4px);
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 15px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .btn-undo-enter { animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .drop-zone { border: 2px dashed #e2e8f0; transition: all 0.2s; }
-        .drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
-
-        .tools-container:hover .tools-options { 
-            opacity: 1; 
-            transform: translateY(0); 
-            pointer-events: auto; 
-            visibility: visible; 
-        }
-        .tools-options { 
-            opacity: 0; 
-            transform: translateY(10px); 
-            pointer-events: none; 
-            visibility: hidden; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-
-        /* --- Estilização do Modo Escuro --- */
-        body.dark { background-color: #0f172a; color: #f8fafc; }
-        body.dark .bg-white { background-color: #1e293b; border-color: #334155; }
-        body.dark .bg-slate-50, body.dark .bg-slate-100 { background-color: #0f172a; border-color: #1e293b; }
-        body.dark .text-slate-800, body.dark .text-slate-700 { color: #f1f5f9; }
-        body.dark .text-slate-600, body.dark .text-slate-500 { color: #cbd5e1; }
-        body.dark .text-slate-400 { color: #94a3b8; }
-        body.dark .border-slate-100, body.dark .border-slate-200 { border-color: #334155; }
-        body.dark .border-slate-50 { border-color: #1e293b; }
-        body.dark .shadow-sm, body.dark .shadow-lg, body.dark .shadow-xl { box-shadow: none; }
-        body.dark th { background-color: #1e293b !important; color: #94a3b8 !important; border-bottom-color: #334155 !important; }
-        body.dark td { border-color: #334155 !important; color: #cbd5e1 !important; }
-        body.dark .hover\:bg-slate-50:hover { background-color: #334155; }
-        
-        body.dark .db-select { background-color: #1e293b; border-color: #334155; color: #cbd5e1; }
-        body.dark .db-select div { color: #cbd5e1; border-color: #334155; }
-        body.dark .db-select div:hover { background-color: #0f172a; color: #38bdf8; }
-        
-        body.dark select { background-color: transparent; color: #f1f5f9; border-color: #334155; }
-        body.dark select option { background-color: #1e293b; color: #f1f5f9; }
-        body.dark input, body.dark textarea { background-color: transparent; color: #f1f5f9; border-color: #334155; }
-        body.dark input:focus, body.dark select:focus, body.dark textarea:focus { border-color: #3b82f6; }
-
-        body.dark .upload-menu { background-color: #1e293b; border-color: #334155; }
-        body.dark .upload-menu button:hover { background-color: #334155; color: #f1f5f9; }
-        body.dark .divider { background-color: #334155; }
-        body.dark .drop-zone { background-color: #1e293b; border-color: #334155; }
-        body.dark .drop-zone:hover { background-color: rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
-        body.dark .bg-slate-800 { background-color: #38bdf8; color: #0f172a; }
-        body.dark .bg-slate-800.text-white { color: #0f172a; }
-        body.dark .tools-options button { background-color: #1e293b; border-color: #334155; color: #cbd5e1; }
-        body.dark .tools-options button:hover { background-color: #334155; color: #f8fafc; }
-        body.dark .nav-btn.inactive { background-color: #1e293b; border-color: #334155; color: #cbd5e1; }
-        body.dark .nav-btn.inactive:hover { background-color: #334155; }
-        body.dark .nav-btn.active { background-color: #38bdf8; color: #0f172a; border-color: #38bdf8; }
-        body.dark .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
-        body.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
-
-        body.dark #tableContainerSLA table { background-color: #0f172a; }
-        body.dark #tableContainerSLA thead tr { background-color: #1e293b !important; }
-        body.dark #tableContainerSLA tbody tr { background-color: #0f172a; }
-        body.dark #tableContainerSLA tbody tr:hover { background-color: #1e293b; }
-        body.dark .bg-slate-50\/50, body.dark .bg-slate-50\/30 { background-color: #1e293b !important; border-color: #334155 !important; }
-
-        /* Ajustes de cores do Dropdown do usuário no Dark Mode */
-        body.dark #userDropdown { background-color: #1e293b; border-color: #334155; }
-        body.dark #userDropdown .bg-gray-50 { background-color: #0f172a; border-color: #334155; }
-        body.dark #userDropdown .text-gray-800 { color: #f8fafc; }
-        body.dark #userDropdown button { color: #cbd5e1; }
-        body.dark #userDropdown button:hover { background-color: #334155; color: #f8fafc; }
-        body.dark #userDropdown .border-t { border-color: #334155; }
-        body.dark #userDropdown .text-red-600 { color: #f87171; }
-        
-        .toggle-switch { position: relative; display: inline-block; width: 32px; height: 18px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2563eb; }
-        input:checked + .slider:before { transform: translateX(14px); }
-        body.dark .slider { background-color: #334155; }
-        body.dark input:checked + .slider { background-color: #38bdf8; }
-    </style>
+    
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-[#f8fafc] text-slate-900 min-h-screen flex flex-col pb-20">
 
-<div class="fixed top-4 right-4 z-50 font-sans">
-    <button onclick="toggleUserMenu()" class="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500" id="userAvatarBtn">
-        <i data-lucide="user" class="w-5 h-5 text-gray-600"></i>
-    </button>
-    <div id="userDropdown" class="hidden absolute top-12 right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden transform transition-all duration-200 origin-top-right">
-        <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</p>
-            <p class="text-sm font-bold text-gray-800" id="userStatusLabel">Visitante</p>
-        </div>
-        <button id="btnLoginOption" onclick="openLoginModal()" class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 transition-colors">
-            <i data-lucide="log-in" class="w-4 h-4"></i> Entrar como Admin
+    <div class="fixed top-4 right-4 z-50 font-sans">
+        <button onclick="toggleUserMenu()" class="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500" id="userAvatarBtn">
+            <i data-lucide="user" class="w-5 h-5 text-gray-600"></i>
         </button>
-        <button id="btnLogoutOption" onclick="performLogout()" class="hidden w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Sair (Logout)
-        </button>
-        <div class="border-t border-gray-100 my-1"></div>
-        <button onclick="toggleDarkMode()" class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors">
-            <i data-lucide="moon" class="w-4 h-4" id="darkModeIcon"></i> Alternar Tema
-        </button>
-        <button onclick="fullReset()" class="w-full text-left px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors">
-            <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Dados
-        </button>
-    </div>
-</div>
-
-<div id="loadingOverlay">
-    <div class="spinner"></div>
-    <h3 class="text-white font-bold text-lg">Processando arquivos...</h3>
-    <p class="text-slate-400 text-sm mt-2" id="loadingText">Isso pode levar alguns segundos.</p>
-</div>
-
-<div id="infoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden flex items-center justify-center fade-in">
-    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden m-4">
-        <div class="bg-slate-800 p-4 flex justify-between items-center">
-            <h3 class="text-white font-black text-sm flex items-center gap-2">
-                <i data-lucide="info" class="w-4 h-4"></i> Detalhes NTP
-            </h3>
-            <button onclick="closeModal('infoModal')" class="text-slate-400 hover:text-white transition-colors">
-                <i data-lucide="x" class="w-5 h-5"></i>
+        <div id="userDropdown" class="hidden absolute top-12 right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden transform transition-all duration-200 origin-top-right">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</p>
+                <p class="text-sm font-bold text-gray-800" id="userStatusLabel">Visitante</p>
+            </div>
+            <button id="btnLoginOption" onclick="openLoginModal()" class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 transition-colors">
+                <i data-lucide="log-in" class="w-4 h-4"></i> Entrar como Admin
+            </button>
+            <button id="btnLogoutOption" onclick="performLogout()" class="hidden w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Sair (Logout)
+            </button>
+            <div class="border-t border-gray-100 my-1"></div>
+            <button onclick="toggleDarkMode()" class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors">
+                <i data-lucide="moon" class="w-4 h-4" id="darkModeIcon"></i> Alternar Tema
+            </button>
+            <button onclick="fullReset()" class="w-full text-left px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Dados
             </button>
         </div>
-        <div class="p-6 overflow-y-auto max-h-[70vh]" id="modalContent"></div>
     </div>
-</div>
 
-<div id="loginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] hidden flex items-center justify-center transition-opacity">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
-        <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-center">
-            <div class="mx-auto bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mb-3 backdrop-blur-md">
-                <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
-            </div>
-            <h2 class="text-xl font-bold text-white">Acesso Administrativo</h2>
-            <p class="text-blue-100 text-sm mt-1">Digite sua senha para continuar</p>
-        </div>
-        <div class="p-6">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Senha de Acesso</label>
-                <div class="relative">
-                    <input type="password" id="adminPasswordInput" 
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                        placeholder="••••••••"
-                        onkeydown="if(event.key === 'Enter') checkLogin()">
-                    <i data-lucide="lock" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
-                </div>
-                <p id="loginErrorMsg" class="hidden text-red-500 text-xs mt-2 flex items-center gap-1">
-                    <i data-lucide="alert-circle" class="w-3 h-3"></i> Senha incorreta.
-                </p>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="closeLoginModal()" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">Cancelar</button>
-                <button onclick="checkLogin()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-md transition-transform active:scale-95">Entrar</button>
-            </div>
-        </div>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3 class="text-white font-bold text-lg">Processando arquivos...</h3>
+        <p class="text-slate-400 text-sm mt-2" id="loadingText">Isso pode levar alguns segundos.</p>
     </div>
-</div>
 
-<div id="ordersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden flex items-center justify-center fade-in">
-    <div class="bg-white w-full modal-lg rounded-2xl shadow-2xl overflow-hidden m-4 flex flex-col max-h-[85vh]">
-        <div class="bg-blue-600 p-4 flex justify-between items-center shrink-0">
-            <div>
+    <div id="infoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden flex items-center justify-center fade-in">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden m-4">
+            <div class="bg-slate-800 p-4 flex justify-between items-center">
                 <h3 class="text-white font-black text-sm flex items-center gap-2">
-                    <i data-lucide="list" class="w-4 h-4"></i> Lista de Pedidos
+                    <i data-lucide="info" class="w-4 h-4"></i> Detalhes NTP
                 </h3>
-                <p id="ordersModalTitle" class="text-blue-100 text-xs mt-1">Unidade - Mês</p>
-            </div>
-            <button onclick="closeModal('ordersModal')" class="text-blue-200 hover:text-white transition-colors">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-        </div>
-        <div class="overflow-y-auto p-0 custom-scrollbar grow">
-            <table class="w-full text-left text-[11px] border-collapse">
-                <thead class="bg-slate-100 text-slate-500 sticky top-0 z-10 shadow-sm">
-                    <tr>
-                        <th class="px-4 py-2 font-bold border-b w-24">
-                            <div class="th-content" id="th-order-os">OS <span onclick="toggleOrdersFilter(event,'os')" class="filter-icon">▼</span></div>
-                            <div id="orders-filter-os" class="db-select custom-scrollbar"></div>
-                        </th>
-                        <th class="px-4 py-2 font-bold border-b w-24">
-                            <div class="th-content" id="th-order-data">Abertura<span onclick="toggleOrdersFilter(event,'data')" class="filter-icon">▼</span></div>
-                            <div id="orders-filter-data" class="db-select custom-scrollbar"></div>
-                        </th>
-                        <th class="px-4 py-2 font-bold border-b w-24">
-                            <div class="th-content" id="th-order-venc">Vencimento (Calc) <span onclick="toggleOrdersFilter(event,'vencimento')" class="filter-icon">▼</span></div>
-                            <div id="orders-filter-vencimento" class="db-select custom-scrollbar"></div>
-                        </th>
-                        <th class="px-4 py-2 font-bold border-b">
-                            <div class="th-content" id="th-order-status">Status Prazo (Din) <span onclick="toggleOrdersFilter(event,'statusDyn')" class="filter-icon">▼</span></div>
-                            <div id="orders-filter-statusDyn" class="db-select custom-scrollbar"></div>
-                        </th>
-                        <th class="px-4 py-2 font-bold border-b">
-                            <div class="th-content" id="th-order-class">Classificação / Status <span onclick="toggleOrdersFilter(event,'classificacao')" class="filter-icon">▼</span></div>
-                            <div id="orders-filter-classificacao" class="db-select custom-scrollbar"></div>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="ordersModalBody" class="divide-y divide-slate-100 bg-white"></tbody>
-            </table>
-        </div>
-        <div class="bg-slate-50 p-3 text-center border-t border-slate-100 shrink-0">
-            <button onclick="closeModal('ordersModal')" class="text-xs font-bold text-slate-500 hover:text-slate-800">Fechar</button>
-        </div>
-    </div>
-</div>
-
-<div class="max-w-[95%] mx-auto px-4 py-8 w-full" id="app">
-    <input type="file" id="csvInputAbertura" accept=".csv" class="hidden" multiple onchange="handleFileSelect(event, 'sla_abertura')">
-    <input type="file" id="csvInputFechamento" accept=".csv" class="hidden" multiple onchange="handleFileSelect(event, 'sla_fechamento')">
-    <input type="file" id="ntpCsvInput" accept=".csv" class="hidden" multiple onchange="handleFileSelect(event, 'ntp')">
-
-    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6 pl-12 lg:pl-0">
-        <div>
-            <h1 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                <div class="bg-slate-800 p-2 rounded-lg text-white"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div>
-                Dashboard Imbera
-            </h1>
-        </div>
-        
-        <div class="flex flex-wrap gap-3 items-center w-full lg:w-auto">
-            <button id="btnUndoMinimal" onclick="undoLastAction()" class="hidden btn-undo-enter bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 shadow-sm p-2 rounded-lg transition-all flex items-center justify-center group" title="Desfazer (Ctrl + Z)">
-                <i data-lucide="undo-2" class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform"></i>
-            </button>
-
-            <div class="flex gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-                <button onclick="switchTab('sla')" id="btn-sla" class="nav-btn active px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> SLA
-                </button>
-                <button onclick="switchTab('ntp')" id="btn-ntp" class="nav-btn inactive px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
-                    <i data-lucide="file-warning" class="w-3.5 h-3.5"></i> NTPs
+                <button onclick="closeModal('infoModal')" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-
-            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2">
-                <span class="text-[10px] font-bold uppercase text-slate-400">Ano Filtro:</span>
-                <select id="globalYearFilter" onchange="changeYear(this.value)" class="bg-transparent border-none focus:ring-0 text-sm font-bold outline-none cursor-pointer text-slate-800 dark:text-slate-200">
-                    <option value="Todos" selected>Todos os Anos</option> 
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                </select>
-            </div>
+            <div class="p-6 overflow-y-auto max-h-[70vh]" id="modalContent"></div>
         </div>
     </div>
 
-    <div id="view-sla" class="fade-in">
-        <div class="flex flex-wrap items-center justify-end gap-3 mb-8">
-            <div class="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 flex items-center gap-2">
-                <i data-lucide="building-2" class="w-3.5 h-3.5 text-blue-500"></i>
-                <select id="unidadeFilter" onchange="changeUnidade(this.value)" class="bg-transparent border-none focus:ring-0 text-[10px] font-bold outline-none"></select>
-            </div>
-
-            <div class="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
-                <select id="estadoFilter" onchange="changeEstado(this.value)" class="bg-transparent border-none focus:ring-0 text-[10px] font-bold outline-none min-w-[80px] cursor-pointer">
-                    <option value="Todos">Todos Estados</option>
-                </select>
-            </div>
-
-            <div class="relative group">
-                <button onclick="toggleUploadMenu(event)" class="bg-blue-600 text-white shadow-lg shadow-blue-200 px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-[10px] font-bold transition-all">
-                    <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> 
-                    IMPORTAR DADOS SLA 
-                    <i data-lucide="chevron-down" class="w-3 h-3 ml-1"></i>
-                </button>
-                <div id="slaUploadMenu" class="upload-menu">
-                    <div class="px-3 py-2 text-[9px] font-black text-slate-400 uppercase tracking-wider">Selecione (Múltiplos)</div>
-                    <button onclick="document.getElementById('csvInputAbertura').click()" class="text-slate-700 hover:text-blue-600">
-                        <div class="bg-blue-100 text-blue-600 p-1.5 rounded"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i></div>
-                        Importar Aberturas (AB)
-                    </button>
-                    <button onclick="document.getElementById('csvInputFechamento').click()" class="text-slate-700 hover:text-emerald-600">
-                        <div class="bg-emerald-100 text-emerald-600 p-1.5 rounded"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i></div>
-                        Importar Fechamentos (FC)
-                    </button>
-                    <div class="divider"></div>
-                    <button onclick="downloadSlaTemplate()" class="text-slate-500">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar Modelo CSV
-                    </button>
+    <div id="loginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] hidden flex items-center justify-center transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-center">
+                <div class="mx-auto bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mb-3 backdrop-blur-md">
+                    <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
                 </div>
+                <h2 class="text-xl font-bold text-white">Acesso Administrativo</h2>
+                <p class="text-blue-100 text-sm mt-1">Digite sua senha para continuar</p>
             </div>
-        </div>
-		
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-            <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 shrink-0"><i data-lucide="triangle-alert" class="w-5 h-5"></i></div>
-            <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Aberturas</p>
-                    <button onclick="toggleAllDetails()" class="text-slate-300 hover:text-blue-500 transition-colors" title="Expandir/Recolher Detalhes">
-                        <i id="masterIcon" data-lucide="plus-circle" class="w-3 h-3"></i>
-                    </button>
-                </div>
-                <p id="statAberturas" class="text-xl font-black text-slate-800 leading-tight">0</p>
-            </div>
-        </div>
-        
-        <div class="js-details hidden bg-rose-50/50 p-2 rounded-xl border border-rose-100/50 flex items-center justify-between gap-2 animate-in fade-in zoom-in-95 duration-200">
-            <div class="flex items-center gap-2 min-w-0">
-                <div class="text-rose-600 shrink-0"><i data-lucide="package-minus" class="w-3.5 h-3.5"></i></div>
-                <div class="min-w-0">
-                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">NTP</p>
-                    <div class="flex items-baseline gap-1.5">
-                        <p id="statNTP" class="text-sm font-black text-slate-800">0</p>
-                        <p id="percNTP" class="text-[9px] font-bold text-rose-500">0%</p>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha de Acesso</label>
+                    <div class="relative">
+                        <input type="password" id="adminPasswordInput" 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                            placeholder="••••••••"
+                            onkeydown="if(event.key === 'Enter') checkLogin()">
+                        <i data-lucide="lock" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
                     </div>
+                    <p id="loginErrorMsg" class="hidden text-red-500 text-xs mt-2 flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-3 h-3"></i> Senha incorreta.
+                    </p>
                 </div>
-            </div>
-            <button onclick="sendNtpToTab()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 p-1 rounded-md transition-colors"><i data-lucide="arrow-right-circle" class="w-3.5 h-3.5"></i></button>
-        </div>
-    </div>
-
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-            <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 shrink-0"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
-            <div class="min-w-0">
-                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Fechamentos</p>
-                <p id="statFechamentos" class="text-xl font-black text-slate-800 leading-tight">0</p>
-            </div>
-        </div>
-
-        <div class="js-details hidden bg-orange-50/50 p-2 rounded-xl border border-orange-100/50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
-            <div class="text-orange-600 shrink-0"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></div>
-            <div class="min-w-0">
-                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">Reincidência</p>
-                <div class="flex items-baseline gap-1.5">
-                    <p id="statReincidencia" class="text-sm font-black text-slate-800">0</p>
-                    <p id="percReincidencia" class="text-[9px] font-bold text-orange-500">0%</p>
+                <div class="flex gap-3">
+                    <button onclick="closeLoginModal()" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">Cancelar</button>
+                    <button onclick="checkLogin()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-md transition-transform active:scale-95">Entrar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-            <div id="slaColorBox" class="p-2.5 rounded-lg transition-colors duration-500 shrink-0"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
-            <div class="min-w-0">
-                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">SLA Geral</p>
-                <p id="statSLA" class="text-xl font-black text-slate-800 leading-tight">0%</p>
-            </div>
-        </div>
-
-        <div class="js-details hidden bg-indigo-50/50 p-2 rounded-xl border border-indigo-100/50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
-            <div class="text-indigo-600 shrink-0"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></div>
-            <div class="min-w-0">
-                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">Troca Técnica</p>
-                <div class="flex items-baseline gap-1.5">
-                    <p id="statTroca" class="text-sm font-black text-slate-800">0</p>
-                    <p id="percTroca" class="text-[9px] font-bold text-indigo-500">0%</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-function toggleAllDetails() {
-    const details = document.querySelectorAll('.js-details');
-    const isHidden = details[0].classList.contains('hidden');
-
-    details.forEach(el => {
-        if (isHidden) {
-            el.classList.remove('hidden');
-            el.classList.add('flex');
-        } else {
-            el.classList.add('hidden');
-            el.classList.remove('flex');
-        }
-    });
-}
-</script>
-
-        <div id="exportableSlaArea">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                            <span class="w-1 h-3 bg-blue-600 rounded-full"></span> Evolução do SLA %
-                        </h3>
-                        
-                        <div class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
-                            <span class="text-[10px] font-bold text-slate-500">Mês</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="slaViewToggle" onchange="toggleSlaTimeView()">
-                                <span class="slider"></span>
-                            </label>
-                            <span class="text-[10px] font-bold text-slate-500">Dia</span>
-                        </div>
-                    </div>
-                    <div class="chart-container" style="height: 280px;"><canvas id="slaChart"></canvas></div>
-                </div>
-                
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-wider flex items-center gap-2"><span class="w-1 h-3 bg-slate-300 rounded-full"></span> Comparativo Aberturas x Fechamentos</h3>
-                    <div class="chart-container"><canvas id="volumeChart"></canvas></div>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center flex-wrap gap-4">
-                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Detalhamento Unidades</h3>
-                <div class="relative">
-                    <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="slaTableSearch" placeholder="Filtrar Unidade..." class="pl-9 pr-4 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold focus:ring-2 focus:ring-blue-500 outline-none w-64 bg-transparent">
-                </div>
-            </div>
-            <div class="overflow-x-auto custom-scrollbar max-h-[400px]" id="tableContainerSLA">
-                <table class="w-full text-left text-[11px] border-separate border-spacing-0">
-                    <thead>
-                        <tr class="text-slate-400 bg-slate-50/30 sticky top-0 z-10 backdrop-blur-sm">
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter w-1/4">
-                                <div class="th-content" id="th-unidade">Unidade <span onclick="toggleSlaFilter(event,'unidade', 'th-unidade')" class="filter-icon">▼</span></div>
-                                <div id="sla-filter-unidade" class="db-select custom-scrollbar"></div>
-                            </th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter">
-                                <div class="th-content" id="th-mes">Mês/Ano <span onclick="toggleSlaFilter(event,'mes', 'th-mes')" class="filter-icon">▼</span></div>
-                                <div id="sla-filter-mes" class="db-select custom-scrollbar"></div>
-                            </th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter text-center w-20">Detalhes</th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter text-right">Aberturas</th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter text-right">Fechamentos</th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter text-right">SLA</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-50"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <div id="view-ntp" class="hidden fade-in">
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <h2 class="text-lg font-black text-slate-700">Painel de NTPs</h2>
-                <p class="text-xs text-slate-400">Status Baseado nas Colunas Reais do CSV (Prioridade)</p>
-            </div>
-            <button onclick="document.getElementById('ntpCsvInput').click()" class="bg-rose-50 border border-rose-100 px-4 py-2 rounded-xl text-rose-600 hover:bg-rose-100 flex items-center gap-2 text-xs font-bold transition-all">
-                <i data-lucide="file-warning" class="w-4 h-4"></i> Importar CSV NTP (Múltiplos)
-            </button>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-end">
-            <div class="flex flex-col gap-1">
-                <label class="text-[10px] font-bold uppercase text-slate-400">Unidade de Negócio</label>
-                <select id="ntpUnitFilter" onchange="updateNtpFilters('unit')" class="bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2 font-bold outline-none focus:border-blue-500 w-48">
-                    <option value="Todos">Todos</option>
-                </select>
-            </div>
-             <div class="flex flex-col gap-1">
-                <label class="text-[10px] font-bold uppercase text-slate-400">Posto</label>
-                <select id="ntpPostoFilter" onchange="updateNtpFilters('posto')" class="bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2 font-bold outline-none focus:border-blue-500 w-48">
-                    <option value="Todos">Todos</option>
-                </select>
-            </div>
-            <div class="flex flex-col gap-1 ml-auto">
-                <label class="text-[10px] font-bold uppercase text-slate-400">Busca Rápida</label>
-                <input type="text" id="ntpSearch" placeholder="Data / Unidade / Status / ID..." class="bg-white border border-slate-200 text-xs rounded-lg px-3 py-2 font-bold outline-none focus:border-blue-500 w-56">
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="clearAllNtpFilters()" class="text-xs bg-slate-50 border border-slate-100 px-3 py-2 rounded-lg font-bold">Limpar filtros</button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                        <span class="w-1 h-3 bg-rose-500 rounded-full"></span> Evolução de NTPs
+    <div id="ordersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden flex items-center justify-center fade-in">
+        <div class="bg-white w-full modal-lg rounded-2xl shadow-2xl overflow-hidden m-4 flex flex-col max-h-[85vh]">
+            <div class="bg-blue-600 p-4 flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-white font-black text-sm flex items-center gap-2">
+                        <i data-lucide="list" class="w-4 h-4"></i> Lista de Pedidos
                     </h3>
-                    
-                    <div class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
-                        <span class="text-[10px] font-bold text-slate-500">Mês</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="ntpViewToggle" onchange="toggleNtpTimeView()">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="text-[10px] font-bold text-slate-500">Dia</span>
-                    </div>
+                    <p id="ordersModalTitle" class="text-blue-100 text-xs mt-1">Unidade - Mês</p>
                 </div>
-                
-                <div id="ntpPercentBadge" class="text-xs text-slate-400 mb-2 text-right"></div>
-                <div class="chart-container"><canvas id="ntpChart"></canvas></div>
+                <button onclick="closeModal('ordersModal')" class="text-blue-200 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-wider flex items-center gap-2">
-                    <span class="w-1 h-3 bg-slate-400 rounded-full"></span> Top 10 Volumes
-                </h3>
-                <div class="chart-container" style="height:220px"><canvas id="ntpBarChart"></canvas></div>
-                <div class="mt-4">
-                    <h4 class="text-[10px] font-black uppercase text-slate-400 mb-2">Comparativo Mensal</h4>
-                    <div style="height:140px" class="chart-container"><canvas id="ntpYearChart"></canvas></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-5 bg-slate-50/50 border-b border-slate-100">
-                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Registros NTP Identificados</h3>
-            </div>
-            <div class="overflow-x-auto custom-scrollbar max-h-[400px]">
-                <table class="w-full text-left text-[11px] border-separate border-spacing-0">
-                    <thead>
-                        <tr class="text-slate-400 bg-slate-50/30 sticky top-0 z-10 backdrop-blur-sm">
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter">
-                                <div class="th-content" id="th-ntp-data">Data <span onclick="toggleNtpFilter(event,'data', 'th-ntp-data')" class="filter-icon">▼</span></div>
-                                <div id="ntp-filter-data" class="db-select custom-scrollbar"></div>
+            <div class="overflow-y-auto p-0 custom-scrollbar grow">
+                <table class="w-full text-left text-[11px] border-collapse">
+                    <thead class="bg-slate-100 text-slate-500 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-4 py-2 font-bold border-b w-24">
+                                <div class="th-content" id="th-order-os">OS <span onclick="toggleOrdersFilter(event,'os')" class="filter-icon">▼</span></div>
+                                <div id="orders-filter-os" class="db-select custom-scrollbar"></div>
                             </th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter">
-                                <div class="th-content" id="th-ntp-uni">Unidade <span onclick="toggleNtpFilter(event,'unidade', 'th-ntp-uni')" class="filter-icon">▼</span></div>
-                                <div id="ntp-filter-unidade" class="db-select custom-scrollbar"></div>
+                            <th class="px-4 py-2 font-bold border-b w-24">
+                                <div class="th-content" id="th-order-data">Abertura<span onclick="toggleOrdersFilter(event,'data')" class="filter-icon">▼</span></div>
+                                <div id="orders-filter-data" class="db-select custom-scrollbar"></div>
                             </th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter">
-                                <div class="th-content" id="th-ntp-status">Status Analisado <span onclick="toggleNtpFilter(event,'status', 'th-ntp-status')" class="filter-icon">▼</span></div>
-                                <div id="ntp-filter-status" class="db-select custom-scrollbar"></div>
+                            <th class="px-4 py-2 font-bold border-b w-24">
+                                <div class="th-content" id="th-order-venc">Vencimento (Calc) <span onclick="toggleOrdersFilter(event,'vencimento')" class="filter-icon">▼</span></div>
+                                <div id="orders-filter-vencimento" class="db-select custom-scrollbar"></div>
                             </th>
-                            <th class="px-6 py-4 font-black uppercase tracking-tighter">
-                                <div class="th-content" id="th-ntp-id">ID/OS <span onclick="toggleNtpFilter(event,'id', 'th-ntp-id')" class="filter-icon">▼</span></div>
-                                <div id="ntp-filter-id" class="db-select custom-scrollbar"></div>
+                            <th class="px-4 py-2 font-bold border-b">
+                                <div class="th-content" id="th-order-status">Status Prazo (Din) <span onclick="toggleOrdersFilter(event,'statusDyn')" class="filter-icon">▼</span></div>
+                                <div id="orders-filter-statusDyn" class="db-select custom-scrollbar"></div>
+                            </th>
+                            <th class="px-4 py-2 font-bold border-b">
+                                <div class="th-content" id="th-order-class">Classificação / Status <span onclick="toggleOrdersFilter(event,'classificacao')" class="filter-icon">▼</span></div>
+                                <div id="orders-filter-classificacao" class="db-select custom-scrollbar"></div>
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="ntpTableBody" class="divide-y divide-slate-50"></tbody>
+                    <tbody id="ordersModalBody" class="divide-y divide-slate-100 bg-white"></tbody>
                 </table>
+            </div>
+            <div class="bg-slate-50 p-3 text-center border-t border-slate-100 shrink-0">
+                <button onclick="closeModal('ordersModal')" class="text-xs font-bold text-slate-500 hover:text-slate-800">Fechar</button>
             </div>
         </div>
     </div>
-    
-    <div id="view-calc" class="hidden fade-in">
-        <div class="max-w-5xl mx-auto flex flex-col gap-6">
-            <div class="mb-2">
-                <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <i data-lucide="calculator" class="w-6 h-6 text-blue-600"></i>
-                    Calculadora de Vencimento
-                </h2>
-                <p class="text-slate-500 text-sm mt-1">Cole o arquivo "data" gerado do indicador da KOF e receba um arquivo em CSV já calculado e em data abreviada.</p>
+
+    <div class="max-w-[95%] mx-auto px-4 py-8 w-full" id="app">
+        <input type="file" id="csvInputAbertura" accept=".csv" class="hidden" multiple onchange="handleFileSelect(event, 'sla_abertura')">
+        <input type="file" id="csvInputFechamento" accept=".csv" class="hidden" multiple onchange="handleFileSelect(event, 'sla_fechamento')">
+        <input type="file" id="ntpCsvInput" accept=".csv" class="hidden" multiple onchange="handleFileSelect(event, 'ntp')">
+
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6 pl-12 lg:pl-0">
+            <div>
+                <h1 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                    <div class="bg-slate-800 p-2 rounded-lg text-white"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div>
+                    Dashboard Imbera
+                </h1>
             </div>
             
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <div class="drop-zone rounded-2xl p-10 text-center cursor-pointer bg-slate-50/50 hover:bg-blue-50/50 transition-colors group" onclick="document.getElementById('fileUploadCalc').click()">
-                        <input type="file" id="fileUploadCalc" accept=".xlsx, .xls" class="hidden" />
-                        <div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <i data-lucide="upload-cloud" class="w-8 h-8 text-blue-500"></i>
-                        </div>
-                        <p class="text-sm font-bold text-slate-700">Clique ou arraste o arquivo do indicador da KOF (.xlsx)</p>
+            <div class="flex flex-wrap gap-3 items-center w-full lg:w-auto">
+                <button id="btnUndoMinimal" onclick="undoLastAction()" class="hidden btn-undo-enter bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 shadow-sm p-2 rounded-lg transition-all flex items-center justify-center group" title="Desfazer (Ctrl + Z)">
+                    <i data-lucide="undo-2" class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform"></i>
+                </button>
+
+                <div class="flex gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                    <button onclick="switchTab('sla')" id="btn-sla" class="nav-btn active px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> SLA
+                    </button>
+                    <button onclick="switchTab('ntp')" id="btn-ntp" class="nav-btn inactive px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                        <i data-lucide="file-warning" class="w-3.5 h-3.5"></i> NTPs
+                    </button>
+                </div>
+
+                <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2">
+                    <span class="text-[10px] font-bold uppercase text-slate-400">Ano Filtro:</span>
+                    <select id="globalYearFilter" onchange="changeYear(this.value)" class="bg-transparent border-none focus:ring-0 text-sm font-bold outline-none cursor-pointer text-slate-800 dark:text-slate-200">
+                        <option value="Todos" selected>Todos os Anos</option> 
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-sla" class="fade-in">
+            <div class="flex flex-wrap items-center justify-end gap-3 mb-8">
+                <div class="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 flex items-center gap-2">
+                    <i data-lucide="building-2" class="w-3.5 h-3.5 text-blue-500"></i>
+                    <select id="unidadeFilter" onchange="changeUnidade(this.value)" class="bg-transparent border-none focus:ring-0 text-[10px] font-bold outline-none"></select>
+                </div>
+
+                <div class="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 flex items-center gap-2">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <select id="estadoFilter" onchange="changeEstado(this.value)" class="bg-transparent border-none focus:ring-0 text-[10px] font-bold outline-none min-w-[80px] cursor-pointer">
+                        <option value="Todos">Todos Estados</option>
+                    </select>
+                </div>
+
+                <div class="relative group">
+                    <button onclick="toggleUploadMenu(event)" class="bg-blue-600 text-white shadow-lg shadow-blue-200 px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-[10px] font-bold transition-all">
+                        <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> 
+                        IMPORTAR DADOS SLA 
+                        <i data-lucide="chevron-down" class="w-3 h-3 ml-1"></i>
+                    </button>
+                    <div id="slaUploadMenu" class="upload-menu">
+                        <div class="px-3 py-2 text-[9px] font-black text-slate-400 uppercase tracking-wider">Selecione (Múltiplos)</div>
+                        <button onclick="document.getElementById('csvInputAbertura').click()" class="text-slate-700 hover:text-blue-600">
+                            <div class="bg-blue-100 text-blue-600 p-1.5 rounded"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i></div>
+                            Importar Aberturas (AB)
+                        </button>
+                        <button onclick="document.getElementById('csvInputFechamento').click()" class="text-slate-700 hover:text-emerald-600">
+                            <div class="bg-emerald-100 text-emerald-600 p-1.5 rounded"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i></div>
+                            Importar Fechamentos (FC)
+                        </button>
+                        <div class="divider"></div>
+                        <button onclick="downloadSlaTemplate()" class="text-slate-500">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar Modelo CSV
+                        </button>
                     </div>
-                    <div class="flex flex-col justify-center space-y-4">
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <i data-lucide="settings-2" class="w-4 h-4 text-slate-400"></i> Lógica de Cálculo
-                            </h3>
-                            <ul class="text-[11px] text-slate-500 space-y-2">
-                                <li class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>Pula finais de semana e feriados (Nacionais/SP).</li>
-                            </ul>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 shrink-0"><i data-lucide="triangle-alert" class="w-5 h-5"></i></div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Aberturas</p>
+                                <button onclick="toggleAllDetails()" class="text-slate-300 hover:text-blue-500 transition-colors" title="Expandir/Recolher Detalhes">
+                                    <i id="masterIcon" data-lucide="plus-circle" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                            <p id="statAberturas" class="text-xl font-black text-slate-800 leading-tight">0</p>
                         </div>
-                        <div id="calcStatusBox" class="hidden p-4 rounded-xl border text-sm flex items-start gap-3 transition-all">
-                            <i id="calcStatusIcon" data-lucide="info" class="w-5 h-5 shrink-0"></i>
-                            <div>
-                                <h4 id="calcStatusTitle" class="font-bold text-sm"></h4>
-                                <p id="calcStatusMsg" class="text-xs mt-1"></p>
+                    </div>
+                    
+                    <div class="js-details hidden bg-rose-50/50 p-2 rounded-xl border border-rose-100/50 flex items-center justify-between gap-2 animate-in fade-in zoom-in-95 duration-200">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <div class="text-rose-600 shrink-0"><i data-lucide="package-minus" class="w-3.5 h-3.5"></i></div>
+                            <div class="min-w-0">
+                                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">NTP</p>
+                                <div class="flex items-baseline gap-1.5">
+                                    <p id="statNTP" class="text-sm font-black text-slate-800">0</p>
+                                    <p id="percNTP" class="text-[9px] font-bold text-rose-500">0%</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="sendNtpToTab()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 p-1 rounded-md transition-colors"><i data-lucide="arrow-right-circle" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 shrink-0"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Fechamentos</p>
+                            <p id="statFechamentos" class="text-xl font-black text-slate-800 leading-tight">0</p>
+                        </div>
+                    </div>
+
+                    <div class="js-details hidden bg-orange-50/50 p-2 rounded-xl border border-orange-100/50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
+                        <div class="text-orange-600 shrink-0"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></div>
+                        <div class="min-w-0">
+                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">Reincidência</p>
+                            <div class="flex items-baseline gap-1.5">
+                                <p id="statReincidencia" class="text-sm font-black text-slate-800">0</p>
+                                <p id="percReincidencia" class="text-[9px] font-bold text-orange-500">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+                    <div class="flex items-center gap-3">
+                        <div id="slaColorBox" class="p-2.5 rounded-lg transition-colors duration-500 shrink-0"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">SLA Geral</p>
+                            <p id="statSLA" class="text-xl font-black text-slate-800 leading-tight">0%</p>
+                        </div>
+                    </div>
+
+                    <div class="js-details hidden bg-indigo-50/50 p-2 rounded-xl border border-indigo-100/50 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
+                        <div class="text-indigo-600 shrink-0"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></div>
+                        <div class="min-w-0">
+                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tight">Troca Técnica</p>
+                            <div class="flex items-baseline gap-1.5">
+                                <p id="statTroca" class="text-sm font-black text-slate-800">0</p>
+                                <p id="percTroca" class="text-[9px] font-bold text-indigo-500">0%</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="calcPreviewSection" class="hidden bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in mt-2">
-                <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Preview dos Dados
-                        </h3>
+            <div id="exportableSlaArea">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-1 h-3 bg-blue-600 rounded-full"></span> Evolução do SLA %
+                            </h3>
+                            
+                            <div class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-500">Mês</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="slaViewToggle" onchange="toggleSlaTimeView()">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="text-[10px] font-bold text-slate-500">Dia</span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 280px;"><canvas id="slaChart"></canvas></div>
                     </div>
-                    <button id="btnDownloadCalculated" onclick="downloadCalculatedCSV()" class="w-full md:w-auto bg-emerald-600 text-white shadow-lg shadow-emerald-200 px-5 py-2.5 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 text-[11px] font-bold transition-all shrink-0">
-                        <i data-lucide="download" class="w-4 h-4"></i> EXPORTAR PARA SISTEMA
-                    </button>
+                    
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                        <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-wider flex items-center gap-2"><span class="w-1 h-3 bg-slate-300 rounded-full"></span> Comparativo Aberturas x Fechamentos</h3>
+                        <div class="chart-container"><canvas id="volumeChart"></canvas></div>
+                    </div>
                 </div>
-                <div class="overflow-y-auto overflow-x-auto max-h-[500px] custom-scrollbar">
+            </div>
+            
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center flex-wrap gap-4">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Detalhamento Unidades</h3>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="slaTableSearch" placeholder="Filtrar Unidade..." class="pl-9 pr-4 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold focus:ring-2 focus:ring-blue-500 outline-none w-64 bg-transparent">
+                    </div>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar max-h-[400px]" id="tableContainerSLA">
                     <table class="w-full text-left text-[11px] border-separate border-spacing-0">
-                        <thead id="calcPreviewHead" class="sticky top-0 z-10"></thead>
-                        <tbody id="calcPreviewBody" class="divide-y divide-slate-50"></tbody>
+                        <thead>
+                            <tr class="text-slate-400 bg-slate-50/30 sticky top-0 z-10 backdrop-blur-sm">
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter w-1/4">
+                                    <div class="th-content" id="th-unidade">Unidade <span onclick="toggleSlaFilter(event,'unidade', 'th-unidade')" class="filter-icon">▼</span></div>
+                                    <div id="sla-filter-unidade" class="db-select custom-scrollbar"></div>
+                                </th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter">
+                                    <div class="th-content" id="th-mes">Mês/Ano <span onclick="toggleSlaFilter(event,'mes', 'th-mes')" class="filter-icon">▼</span></div>
+                                    <div id="sla-filter-mes" class="db-select custom-scrollbar"></div>
+                                </th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter text-center w-20">Detalhes</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter text-right">Aberturas</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter text-right">Fechamentos</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter text-right">SLA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
+        
+        <div id="view-ntp" class="hidden fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-lg font-black text-slate-700">Painel de NTPs</h2>
+                    <p class="text-xs text-slate-400">Status Baseado nas Colunas Reais do CSV (Prioridade)</p>
+                </div>
+                <button onclick="document.getElementById('ntpCsvInput').click()" class="bg-rose-50 border border-rose-100 px-4 py-2 rounded-xl text-rose-600 hover:bg-rose-100 flex items-center gap-2 text-xs font-bold transition-all">
+                    <i data-lucide="file-warning" class="w-4 h-4"></i> Importar CSV NTP (Múltiplos)
+                </button>
+            </div>
 
-    <div id="view-repair" class="hidden fade-in">
-        <div class="max-w-6xl mx-auto flex flex-col gap-6">
-            <div class="mb-2">
-                <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <i data-lucide="wrench" class="w-6 h-6 text-orange-600"></i>
-                    Tracking - Outbound
-                </h2>
-                <p class="text-slate-500 text-sm mt-1">Cole as OS Cliente para filtrar e gerar uma base Consulta OS com as colunas defeito constatado e solução corrigidas.</p>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-end">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Unidade de Negócio</label>
+                    <select id="ntpUnitFilter" onchange="updateNtpFilters('unit')" class="bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2 font-bold outline-none focus:border-blue-500 w-48">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Posto</label>
+                    <select id="ntpPostoFilter" onchange="updateNtpFilters('posto')" class="bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2 font-bold outline-none focus:border-blue-500 w-48">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 ml-auto">
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Busca Rápida</label>
+                    <input type="text" id="ntpSearch" placeholder="Data / Unidade / Status / ID..." class="bg-white border border-slate-200 text-xs rounded-lg px-3 py-2 font-bold outline-none focus:border-blue-500 w-56">
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearAllNtpFilters()" class="text-xs bg-slate-50 border border-slate-100 px-3 py-2 rounded-lg font-bold">Limpar filtros</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
-                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="list-checks" class="w-4 h-4 text-slate-400"></i> 1. Cole as OS Cliente.
-                    </h3>
-                    <textarea id="repairOsInput" class="w-full h-48 border border-slate-200 rounded-xl p-3 text-xs custom-scrollbar outline-none focus:border-orange-500 resize-none leading-relaxed" placeholder="Ex:&#10;505500&#10;505501..."></textarea>
-                </div>
-
-                <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-center items-center">
-                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2 self-start mb-4">
-                        <i data-lucide="upload-cloud" class="w-4 h-4 text-slate-400"></i> 2. Importar Base CSV
-                    </h3>
-                    
-                    <div class="drop-zone w-full rounded-2xl p-10 text-center cursor-pointer bg-slate-50/50 hover:bg-orange-50/50 transition-colors group" onclick="document.getElementById('fileUploadRepair').click()">
-                        <input type="file" id="fileUploadRepair" accept=".csv" class="hidden" onchange="handleRepairFile(event)" />
-                        <div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <i data-lucide="file-spreadsheet" class="w-8 h-8 text-orange-500"></i>
+                <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-1 h-3 bg-rose-500 rounded-full"></span> Evolução de NTPs
+                        </h3>
+                        
+                        <div class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
+                            <span class="text-[10px] font-bold text-slate-500">Mês</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="ntpViewToggle" onchange="toggleNtpTimeView()">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="text-[10px] font-bold text-slate-500">Dia</span>
                         </div>
-                        <p class="text-sm font-bold text-slate-700">Clique para selecionar o arquivo CSV da Consulta OS </p>
+                    </div>
+                    
+                    <div id="ntpPercentBadge" class="text-xs text-slate-400 mb-2 text-right"></div>
+                    <div class="chart-container"><canvas id="ntpChart"></canvas></div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1 h-3 bg-slate-400 rounded-full"></span> Top 10 Volumes
+                    </h3>
+                    <div class="chart-container" style="height:220px"><canvas id="ntpBarChart"></canvas></div>
+                    <div class="mt-4">
+                        <h4 class="text-[10px] font-black uppercase text-slate-400 mb-2">Comparativo Mensal</h4>
+                        <div style="height:140px" class="chart-container"><canvas id="ntpYearChart"></canvas></div>
                     </div>
                 </div>
             </div>
 
-            <div id="repairPreviewSection" class="hidden bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in">
-                <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Preview das Modificações
-                        </h3>
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 bg-slate-50/50 border-b border-slate-100">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Registros NTP Identificados</h3>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar max-h-[400px]">
+                    <table class="w-full text-left text-[11px] border-separate border-spacing-0">
+                        <thead>
+                            <tr class="text-slate-400 bg-slate-50/30 sticky top-0 z-10 backdrop-blur-sm">
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter">
+                                    <div class="th-content" id="th-ntp-data">Data <span onclick="toggleNtpFilter(event,'data', 'th-ntp-data')" class="filter-icon">▼</span></div>
+                                    <div id="ntp-filter-data" class="db-select custom-scrollbar"></div>
+                                </th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter">
+                                    <div class="th-content" id="th-ntp-uni">Unidade <span onclick="toggleNtpFilter(event,'unidade', 'th-ntp-uni')" class="filter-icon">▼</span></div>
+                                    <div id="ntp-filter-unidade" class="db-select custom-scrollbar"></div>
+                                </th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter">
+                                    <div class="th-content" id="th-ntp-status">Status Analisado <span onclick="toggleNtpFilter(event,'status', 'th-ntp-status')" class="filter-icon">▼</span></div>
+                                    <div id="ntp-filter-status" class="db-select custom-scrollbar"></div>
+                                </th>
+                                <th class="px-6 py-4 font-black uppercase tracking-tighter">
+                                    <div class="th-content" id="th-ntp-id">ID/OS <span onclick="toggleNtpFilter(event,'id', 'th-ntp-id')" class="filter-icon">▼</span></div>
+                                    <div id="ntp-filter-id" class="db-select custom-scrollbar"></div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="ntpTableBody" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="view-calc" class="hidden fade-in">
+            <div class="max-w-5xl mx-auto flex flex-col gap-6">
+                <div class="mb-2">
+                    <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-6 h-6 text-blue-600"></i>
+                        Calculadora de Vencimento
+                    </h2>
+                    <p class="text-slate-500 text-sm mt-1">Cole o arquivo "data" gerado do indicador da KOF e receba um arquivo em CSV já calculado e em data abreviada.</p>
+                </div>
+                
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="drop-zone rounded-2xl p-10 text-center cursor-pointer bg-slate-50/50 hover:bg-blue-50/50 transition-colors group" onclick="document.getElementById('fileUploadCalc').click()">
+                            <input type="file" id="fileUploadCalc" accept=".xlsx, .xls" class="hidden" />
+                            <div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                                <i data-lucide="upload-cloud" class="w-8 h-8 text-blue-500"></i>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">Clique ou arraste o arquivo do indicador da KOF (.xlsx)</p>
+                        </div>
+                        <div class="flex flex-col justify-center space-y-4">
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <i data-lucide="settings-2" class="w-4 h-4 text-slate-400"></i> Lógica de Cálculo
+                                </h3>
+                                <ul class="text-[11px] text-slate-500 space-y-2">
+                                    <li class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>Pula finais de semana e feriados (Nacionais/SP).</li>
+                                </ul>
+                            </div>
+                            <div id="calcStatusBox" class="hidden p-4 rounded-xl border text-sm flex items-start gap-3 transition-all">
+                                <i id="calcStatusIcon" data-lucide="info" class="w-5 h-5 shrink-0"></i>
+                                <div>
+                                    <h4 id="calcStatusTitle" class="font-bold text-sm"></h4>
+                                    <p id="calcStatusMsg" class="text-xs mt-1"></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto shrink-0">
-                        <button onclick="downloadRepairCSV()" class="w-full md:w-auto bg-emerald-600 text-white shadow-lg shadow-emerald-200 px-5 py-2.5 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 text-[11px] font-bold transition-all">
-                            <i data-lucide="download" class="w-4 h-4"></i> EXPORTAR FILTRADOS
+                </div>
+
+                <div id="calcPreviewSection" class="hidden bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in mt-2">
+                    <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Preview dos Dados
+                            </h3>
+                        </div>
+                        <button id="btnDownloadCalculated" onclick="downloadCalculatedCSV()" class="w-full md:w-auto bg-emerald-600 text-white shadow-lg shadow-emerald-200 px-5 py-2.5 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 text-[11px] font-bold transition-all shrink-0">
+                            <i data-lucide="download" class="w-4 h-4"></i> EXPORTAR PARA SISTEMA
                         </button>
-                        <button onclick="downloadFullRepairCSV()" class="w-full md:w-auto bg-blue-600 text-white shadow-lg shadow-blue-200 px-5 py-2.5 rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 text-[11px] font-bold transition-all">
-                            <i data-lucide="download-cloud" class="w-4 h-4"></i> EXPORTAR BASE COMPLETA CORRIGIDA
-                        </button>
+                    </div>
+                    <div class="overflow-y-auto overflow-x-auto max-h-[500px] custom-scrollbar">
+                        <table class="w-full text-left text-[11px] border-separate border-spacing-0">
+                            <thead id="calcPreviewHead" class="sticky top-0 z-10"></thead>
+                            <tbody id="calcPreviewBody" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-repair" class="hidden fade-in">
+            <div class="max-w-6xl mx-auto flex flex-col gap-6">
+                <div class="mb-2">
+                    <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                        <i data-lucide="wrench" class="w-6 h-6 text-orange-600"></i>
+                        Tracking - Outbound
+                    </h2>
+                    <p class="text-slate-500 text-sm mt-1">Cole as OS Cliente para filtrar e gerar uma base Consulta OS com as colunas defeito constatado e solução corrigidas.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                            <i data-lucide="list-checks" class="w-4 h-4 text-slate-400"></i> 1. Cole as OS Cliente.
+                        </h3>
+                        <textarea id="repairOsInput" class="w-full h-48 border border-slate-200 rounded-xl p-3 text-xs custom-scrollbar outline-none focus:border-orange-500 resize-none leading-relaxed" placeholder="Ex:&#10;505500&#10;505501..."></textarea>
                     </div>
 
+                    <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-center items-center">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2 self-start mb-4">
+                            <i data-lucide="upload-cloud" class="w-4 h-4 text-slate-400"></i> 2. Importar Base CSV
+                        </h3>
+                        
+                        <div class="drop-zone w-full rounded-2xl p-10 text-center cursor-pointer bg-slate-50/50 hover:bg-orange-50/50 transition-colors group" onclick="document.getElementById('fileUploadRepair').click()">
+                            <input type="file" id="fileUploadRepair" accept=".csv" class="hidden" onchange="handleRepairFile(event)" />
+                            <div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                                <i data-lucide="file-spreadsheet" class="w-8 h-8 text-orange-500"></i>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">Clique para selecionar o arquivo CSV da Consulta OS </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="overflow-y-auto overflow-x-auto max-h-[500px] custom-scrollbar">
-                    <table class="w-full text-left text-[11px] border-separate border-spacing-0">
-                        <thead id="repairPreviewHead" class="sticky top-0 z-10"></thead>
-                        <tbody id="repairPreviewBody" class="divide-y divide-slate-50"></tbody>
+
+                <div id="repairPreviewSection" class="hidden bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in">
+                    <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Preview das Modificações
+                            </h3>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto shrink-0">
+                            <button onclick="downloadRepairCSV()" class="w-full md:w-auto bg-emerald-600 text-white shadow-lg shadow-emerald-200 px-5 py-2.5 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 text-[11px] font-bold transition-all">
+                                <i data-lucide="download" class="w-4 h-4"></i> EXPORTAR FILTRADOS
+                            </button>
+                            <button onclick="downloadFullRepairCSV()" class="w-full md:w-auto bg-blue-600 text-white shadow-lg shadow-blue-200 px-5 py-2.5 rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 text-[11px] font-bold transition-all">
+                                <i data-lucide="download-cloud" class="w-4 h-4"></i> EXPORTAR BASE COMPLETA CORRIGIDA
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-y-auto overflow-x-auto max-h-[500px] custom-scrollbar">
+                        <table class="w-full text-left text-[11px] border-separate border-spacing-0">
+                            <thead id="repairPreviewHead" class="sticky top-0 z-10"></thead>
+                            <tbody id="repairPreviewBody" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-db" class="hidden fade-in">
+             <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Base de Dados Completa</h3>
+                    
+                    <div class="flex gap-4 items-center">
+                        <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-500"></i>
+                            <input type="date" id="dbDateStart" onchange="filterDbTable()" class="bg-transparent text-[10px] font-bold text-slate-600 outline-none uppercase" title="Data Início">
+                            <span class="text-[10px] text-slate-400">até</span>
+                            <input type="date" id="dbDateEnd" onchange="filterDbTable()" class="bg-transparent text-[10px] font-bold text-slate-600 outline-none uppercase" title="Data Fim">
+                        </div>
+
+                        <button onclick="exportarDBCsv()" class="bg-emerald-600 text-white shadow-lg shadow-emerald-200 px-4 py-2 rounded-lg hover:bg-emerald-700 flex items-center gap-2 text-[10px] font-bold transition-all">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> EXPORTAR DB (CSV)
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar max-h-[600px]">
+                    <table class="w-full text-left text-[11px] border-separate border-spacing-0" id="dbTable">
+                        <thead id="dbHeader"></thead>
+                        <tbody id="dbBody" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-    <div id="view-db" class="hidden fade-in">
-         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Base de Dados Completa</h3>
-                
-                <div class="flex gap-4 items-center">
-                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-500"></i>
-                        <input type="date" id="dbDateStart" onchange="filterDbTable()" class="bg-transparent text-[10px] font-bold text-slate-600 outline-none uppercase" title="Data Início">
-                        <span class="text-[10px] text-slate-400">até</span>
-                        <input type="date" id="dbDateEnd" onchange="filterDbTable()" class="bg-transparent text-[10px] font-bold text-slate-600 outline-none uppercase" title="Data Fim">
-                    </div>
 
-                    <button onclick="exportarDBCsv()" class="bg-emerald-600 text-white shadow-lg shadow-emerald-200 px-4 py-2 rounded-lg hover:bg-emerald-700 flex items-center gap-2 text-[10px] font-bold transition-all">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i> EXPORTAR DB (CSV)
-                    </button>
-                </div>
-            </div>
-            <div class="overflow-x-auto custom-scrollbar max-h-[600px]">
-                <table class="w-full text-left text-[11px] border-separate border-spacing-0" id="dbTable">
-                    <thead id="dbHeader"></thead>
-                    <tbody id="dbBody" class="divide-y divide-slate-50"></tbody>
-                </table>
-            </div>
+    <div id="adminToolsMenu" class="fixed bottom-6 right-6 z-50 flex-col-reverse items-end gap-1 tools-container group flex admin-only hidden">
+        <button class="bg-transparent text-slate-500 p-2.5 rounded-2xl hover:bg-slate-200/50 hover:text-slate-800 hover:scale-105 transition-all z-20 flex items-center justify-center">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+
+        <div class="tools-options flex flex-col gap-2 mb-2 pb-2 items-end">
+            <button onclick="switchTab('calc')" class="bg-white border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl shadow-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all flex items-center gap-3 text-xs font-bold whitespace-nowrap">
+                <i data-lucide="calculator" class="w-4 h-4"></i> Calculadora de Vencimentos
+            </button>
+            
+            <button onclick="switchTab('repair')" class="bg-white border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl shadow-md hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all flex items-center gap-3 text-xs font-bold whitespace-nowrap">
+                <i data-lucide="wrench" class="w-4 h-4"></i> Tracking
+            </button>
+
+            <button onclick="switchTab('db')" class="bg-white border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl shadow-md hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all flex items-center gap-3 text-xs font-bold whitespace-nowrap">
+                <i data-lucide="database" class="w-4 h-4"></i> Base de Dados
+            </button>
         </div>
     </div>
-</div>
 
-<div id="adminToolsMenu" class="fixed bottom-6 right-6 z-50 flex-col-reverse items-end gap-1 tools-container group flex admin-only hidden">
-    <button class="bg-transparent text-slate-500 p-2.5 rounded-2xl hover:bg-slate-200/50 hover:text-slate-800 hover:scale-105 transition-all z-20 flex items-center justify-center">
-        <i data-lucide="settings" class="w-5 h-5"></i>
-    </button>
-
-    <div class="tools-options flex flex-col gap-2 mb-2 pb-2 items-end">
-        <button onclick="switchTab('calc')" class="bg-white border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl shadow-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all flex items-center gap-3 text-xs font-bold whitespace-nowrap">
-            <i data-lucide="calculator" class="w-4 h-4"></i> Calculadora de Vencimentos
-        </button>
-        
-        <button onclick="switchTab('repair')" class="bg-white border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl shadow-md hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all flex items-center gap-3 text-xs font-bold whitespace-nowrap">
-            <i data-lucide="wrench" class="w-4 h-4"></i> Tracking
-        </button>
-
-        <button onclick="switchTab('db')" class="bg-white border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl shadow-md hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all flex items-center gap-3 text-xs font-bold whitespace-nowrap">
-            <i data-lucide="database" class="w-4 h-4"></i> Base de Dados
-        </button>
-    </div>
-</div>
-
-<script>
-    let isAdmin = false;
-    const SENHA_CORRETA = "123";
-
-    function toggleUserMenu() {
-        const dropdown = document.getElementById('userDropdown');
-        dropdown.classList.toggle('hidden');
-        if(window.lucide) lucide.createIcons(); 
-    }
-
-    document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('userDropdown');
-        const btn = document.getElementById('userAvatarBtn');
-        if (!btn.contains(event.target) && !dropdown.contains(event.target)) {
-            dropdown.classList.add('hidden');
-        }
-    });
-
-    function openLoginModal() {
-        document.getElementById('userDropdown').classList.add('hidden');
-        document.getElementById('loginModal').classList.remove('hidden');
-        document.getElementById('adminPasswordInput').value = '';
-        document.getElementById('loginErrorMsg').classList.add('hidden');
-        document.getElementById('adminPasswordInput').focus();
-    }
-
-    function closeLoginModal() {
-        document.getElementById('loginModal').classList.add('hidden');
-    }
-
-    function checkLogin() {
-        const input = document.getElementById('adminPasswordInput').value;
-        if (input === SENHA_CORRETA) {
-            isAdmin = true;
-            updateInterfaceForAdmin();
-            closeLoginModal();
-        } else {
-            document.getElementById('loginErrorMsg').classList.remove('hidden');
-            const inputField = document.getElementById('adminPasswordInput');
-            inputField.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-            setTimeout(() => {
-                inputField.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-            }, 500);
-        }
-    }
-
-    function performLogout() {
-        isAdmin = false;
-        document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-        document.getElementById('userStatusLabel').innerText = "Visitante";
-        document.getElementById('userStatusLabel').classList.remove('text-blue-600');
-        document.getElementById('btnLoginOption').classList.remove('hidden');
-        document.getElementById('btnLogoutOption').classList.add('hidden');
-        const btn = document.getElementById('userAvatarBtn');
-        btn.innerHTML = '<i data-lucide="user" class="w-5 h-5 text-gray-600"></i>';
-        btn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
-        document.getElementById('userDropdown').classList.add('hidden');
-        
-        document.getElementById('adminToolsMenu').classList.add('hidden');
-        
-        if(window.lucide) lucide.createIcons();
-    }
-
-    function updateInterfaceForAdmin() {
-        document.getElementById('userStatusLabel').innerText = "Administrador";
-        document.getElementById('userStatusLabel').classList.add('text-blue-600');
-        document.getElementById('btnLoginOption').classList.add('hidden');
-        document.getElementById('btnLogoutOption').classList.remove('hidden');
-        const btn = document.getElementById('userAvatarBtn');
-        btn.innerHTML = '<i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i>';
-        btn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
-        
-        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-        
-        if(window.lucide) lucide.createIcons();
-    }
-
-    function checkPermission() {
-        if (!isAdmin) { alert("Ação permitida apenas para administradores."); return false; }
-        return true;
-    }
-
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark');
-        const icon = document.getElementById('darkModeIcon');
-        if (document.body.classList.contains('dark')) icon.setAttribute('data-lucide', 'sun');
-        else icon.setAttribute('data-lucide', 'moon');
-        lucide.createIcons();
-        if(typeof updateDashboard === 'function') updateDashboard();
-        if(typeof processNTPData === 'function') processNTPData();
-    }
-
-    const feriadosSP = new Set([
-        "2025-01-01", "2025-01-25", "2025-03-03", "2025-03-04", "2025-03-05",
-        "2025-04-18", "2025-04-21", "2025-05-01", "2025-06-19", "2025-07-09",
-        "2025-09-07", "2025-10-12", "2025-11-02", "2025-11-15", "2025-11-20", "2025-12-25",
-        "2026-01-01", "2026-01-25", "2026-02-02", "2026-02-16", "2026-02-17",
-        "2026-04-03", "2026-04-21", "2026-05-01", "2026-06-04", "2026-07-09",
-        "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-11-20", "2026-12-25"
-    ]);
-
-    function addBusinessDays(startDate, daysToAdd) {
-        let currentDate = new Date(startDate);
-        let addedDays = 0;
-        let safeGuard = 0; 
-        
-        while (addedDays < daysToAdd && safeGuard < 200) {
-            currentDate.setDate(currentDate.getDate() + 1);
-            const dayOfWeek = currentDate.getDay(); 
-            const isoDate = currentDate.toISOString().split('T')[0];
-            
-            if (dayOfWeek !== 0 && dayOfWeek !== 6 && !feriadosSP.has(isoDate)) {
-                addedDays++;
-            }
-            safeGuard++;
-        }
-        return currentDate;
-    }
-
-    function calcularVencimento(dataAberturaIso, sla, estadoIgnorado) {
-        if (!dataAberturaIso) return null;
-        const parts = dataAberturaIso.split('-');
-        const startDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
-
-        if (isNaN(startDate.getTime())) return null;
-
-        let daysToAdd = 5; 
-        const slaUpper = sla ? sla.toUpperCase().trim() : "BAIXO";
-
-        if (slaUpper === "MUITO ELEVADO") daysToAdd = 1;
-        else if (slaUpper === "ELEVADO") daysToAdd = 2;
-        else if (slaUpper === "MEDIO" || slaUpper === "MÉDIO") daysToAdd = 3;
-
-        const dueDate = addBusinessDays(startDate, daysToAdd);
-        return dueDate.toISOString().split('T')[0];
-    }
-
-    function calculateSmartStatus(originalStatus, vencimentoIso, dataFechamentoIso = null, statusPrazoCsv = null) { 
-        const statusUpper = (originalStatus || '').toUpperCase(); 
-        
-        if (dataFechamentoIso || statusUpper.includes('FINAL') || statusUpper.includes('CONCLU') || statusUpper.includes('ENCERRAD') || statusUpper.includes('FECHAD') || statusUpper.includes('ATENDID')) { 
-            return { text: 'Finalizado', class: 'text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wide text-[9px]' }; 
-        } 
-        
-        if (!vencimentoIso) { return { text: 'S/ Data', class: 'text-slate-500 italic bg-slate-100 px-2 py-0.5 rounded uppercase tracking-wide text-[9px]' }; } 
-        
-        const today = new Date(); 
-        today.setHours(0,0,0,0); 
-        
-        const vParts = vencimentoIso.split('-');
-        const vencDate = new Date(parseInt(vParts[0]), parseInt(vParts[1])-1, parseInt(vParts[2]));
-        vencDate.setHours(0,0,0,0);
-        
-        if (vencDate < today) { 
-            return { text: 'Vencido', class: 'text-rose-700 font-black bg-rose-100 px-2 py-0.5 rounded border border-rose-200 uppercase tracking-wide text-[9px]' }; 
-        } else if (vencDate.getTime() === today.getTime()) { 
-            return { text: 'Vence Hoje', class: 'text-orange-700 font-black bg-orange-100 px-2 py-0.5 rounded border border-orange-200 uppercase tracking-wide text-[9px]' }; 
-        } else { 
-            const amanha = new Date(today); amanha.setDate(today.getDate()+1);
-            if(vencDate.getTime() === amanha.getTime()) {
-                return { text: 'Vence Amanhã', class: 'text-yellow-700 font-bold bg-yellow-100 px-2 py-0.5 rounded border border-yellow-200 uppercase tracking-wide text-[9px]' };
-            }
-            return { text: 'No Prazo', class: 'text-blue-700 font-bold bg-blue-100 px-2 py-0.5 rounded border border-blue-200 uppercase tracking-wide text-[9px]' }; 
-        } 
-    }
-
-    function debounce(func, wait) {
-        let timeout;
-        return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); };
-    }
-
-    Chart.register(ChartDataLabels);
-    Chart.defaults.set('plugins.datalabels', { color: '#0f172a', font: { weight: 'bold', size: 11 }, anchor: 'end', align: 'top', offset: -2, clamp: false, clip: false, display: (context) => context.dataset.data[context.dataIndex] > 0 });
-    Chart.defaults.layout.padding = { top: 20, right: 20, left: 10, bottom: 10 };
-
-    let rawData = []; let ntpRawData = []; let dbRawData = []; let dbColumns = [];
-    let charts = {}; let currentYear = 'Todos'; let slaTimeView = 'monthly'; let ntpTimeView = 'monthly'; // MUDANÇA
-    let ntpFilterState = {}; let slaFilterState = {}; let dbFilterState = {}; let ordersFilterState = {};
-    let historyStack = []; const MAX_HISTORY = 5;
-
-    document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
-        const storedData = localStorage.getItem('sla_dashboard_data_v10'); if (storedData) try { rawData = JSON.parse(storedData); } catch(e){ rawData = []; }
-        const storedNtp = localStorage.getItem('ntp_dashboard_data_v10'); if (storedNtp) try { ntpRawData = JSON.parse(storedNtp); } catch(e){ ntpRawData = []; }
-        const storedDb = localStorage.getItem('db_dashboard_data_v10'); if (storedDb) { try { const parsed = JSON.parse(storedDb); dbRawData = parsed.rows || []; dbColumns = parsed.cols || []; } catch (e) { dbRawData = []; dbColumns = []; } }
-        const yearSelect = document.getElementById('globalYearFilter'); if (yearSelect) { currentYear = (yearSelect.value === 'Todos') ? 'Todos' : parseInt(yearSelect.value); }
-        init();
-        
-        const slaSearch = document.getElementById('slaTableSearch'); if(slaSearch) slaSearch.addEventListener('keyup', debounce(() => filterSlaTable(), 300));
-        const ntpSearch = document.getElementById('ntpSearch'); if(ntpSearch) ntpSearch.addEventListener('keyup', debounce(() => filterNtpTable(), 300));
-        
-        window.addEventListener('scroll', (event) => { if (event.target && event.target.classList && event.target.classList.contains('db-select')) return; closeSlaFilters(); closeNtpFilters(); closeDbFilters(); }, true);
-        document.addEventListener('keydown', function(event) { if ((event.ctrlKey || event.metaKey) && event.key === 'z') { event.preventDefault(); undoLastAction(); } });
-        const calcInput = document.getElementById('fileUploadCalc'); if(calcInput) calcInput.addEventListener('change', handleCalculatorFile);
-    });
-
-    function init() { populateUnidadeFilter(); updateDashboard(); if(ntpRawData.length > 0) processNTPData(); if(dbRawData.length > 0) renderDatabase(); updateUndoButton(); }
-
-    function saveStateToHistory() {
-        if (historyStack.length >= MAX_HISTORY) historyStack.shift(); 
-        historyStack.push({ rawData: JSON.parse(JSON.stringify(rawData)), ntpRawData: JSON.parse(JSON.stringify(ntpRawData)), dbRawData: JSON.parse(JSON.stringify(dbRawData)), dbColumns: JSON.parse(JSON.stringify(dbColumns)) });
-        updateUndoButton();
-    }
-
-    function undoLastAction() {
-        if (historyStack.length === 0) return;
-        const btn = document.getElementById('btnUndoMinimal'); btn.style.transform = "scale(0.9)"; setTimeout(()=>btn.style.transform = "scale(1)", 150);
-        if(!confirm("Desfazer a última ação?")) return;
-        const lastState = historyStack.pop();
-        rawData = lastState.rawData; ntpRawData = lastState.ntpRawData; dbRawData = lastState.dbRawData; dbColumns = lastState.dbColumns;
-        saveAllData(); init(); updateUndoButton();
-    }
-    
-    function fullReset() {
-        if(!confirm("TEM CERTEZA? Isso apagará todos os dados importados e gráficos.")) return;
-        
-        localStorage.removeItem('sla_dashboard_data_v10');
-        localStorage.removeItem('ntp_dashboard_data_v10');
-        localStorage.removeItem('db_dashboard_data_v10');
-        
-        rawData = []; ntpRawData = []; dbRawData = []; dbColumns = []; historyStack = [];
-
-        document.getElementById('csvInputAbertura').value = '';
-        document.getElementById('csvInputFechamento').value = '';
-        document.getElementById('ntpCsvInput').value = '';
-        
-        init(); processNTPData(); renderDatabase(); updateUndoButton();
-        alert("Dashboard limpo com sucesso!");
-    }
-
-    function updateUndoButton() { const btn = document.getElementById('btnUndoMinimal'); if(historyStack.length > 0) btn.classList.remove('hidden'); else btn.classList.add('hidden'); }
-    function saveAllData() { try { localStorage.setItem('sla_dashboard_data_v10', JSON.stringify(rawData)); localStorage.setItem('ntp_dashboard_data_v10', JSON.stringify(ntpRawData)); localStorage.setItem('db_dashboard_data_v10', JSON.stringify({ cols: dbColumns, rows: dbRawData.slice(0, 300) })); } catch(e) { console.warn("Memória local cheia."); } }
-
-    function handleCalculatorFile(event) {
-        const file = event.target.files[0]; if (!file) return;
-        const statusBox = document.getElementById('calcStatusBox'); const statusTitle = document.getElementById('calcStatusTitle'); const statusMsg = document.getElementById('calcStatusMsg'); const statusIcon = document.getElementById('calcStatusIcon'); const previewSection = document.getElementById('calcPreviewSection');
-        statusBox.classList.remove('hidden', 'bg-red-50', 'bg-green-50', 'text-red-800', 'text-green-800', 'border-red-200', 'border-green-200'); statusBox.classList.add('bg-blue-50', 'text-blue-800', 'border-blue-200'); statusTitle.innerText = "Lendo Excel..."; statusMsg.innerText = "Analisando formato das colunas..."; previewSection.classList.add('hidden');
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { defval: "" }); let countCalculated = 0;
-                calcProcessedData = jsonSheet.map(row => {
-                    const getVal = (key) => { const foundKey = Object.keys(row).find(k => k.trim().toUpperCase() === key.toUpperCase()); return foundKey ? row[foundKey] : ''; };
-                    const rawClassificacao = getVal('CLASSIFICACAO CHAMADO') || getVal('SLA DE ATENDIMENTO') || getVal('PRIORIDADE'); const rawAb = getVal('ab') || getVal('Data Abertura'); 
-                    let dateIso = null; let dataAbCorrigida = rawAb; 
-                    if (typeof rawAb === 'number') { const jsDate = XLSX.SSF.parse_date_code(rawAb); dateIso = `${jsDate.y}-${String(jsDate.m).padStart(2,'0')}-${String(jsDate.d).padStart(2,'0')}`; dataAbCorrigida = `${String(jsDate.d).padStart(2,'0')}/${String(jsDate.m).padStart(2,'0')}/${jsDate.y}`; } else { dateIso = parseDateToIso(rawAb); }
-                    let vencimentoStr = ""; const classificacao = rawClassificacao || "BAIXO";
-                    if (dateIso) { const vencIso = calcularVencimento(dateIso, classificacao, 'SP'); if (vencIso) { vencimentoStr = vencIso.split('-').reverse().join('/'); countCalculated++; } }
-                    let novaLinha = { ...row }; const abKey = Object.keys(novaLinha).find(k => k.trim().toUpperCase() === 'AB'); if (abKey) { novaLinha[abKey] = dataAbCorrigida; }
-                    novaLinha["DATA VENCIMENTO CALCULADA"] = vencimentoStr; return novaLinha;
-                });
-                statusBox.classList.remove('bg-blue-50', 'text-blue-800', 'border-blue-200'); statusBox.classList.add('bg-green-50', 'text-green-800', 'border-green-200'); statusTitle.innerText = "Leitura Concluída!"; statusMsg.innerText = `${countCalculated} prazos calculados de ${jsonSheet.length} linhas importadas.`; statusIcon.classList.remove('text-blue-800'); statusIcon.classList.add('text-green-600');
-                renderCalcPreview(calcProcessedData);
-            } catch (err) {
-                console.error(err); statusBox.classList.remove('bg-blue-50', 'text-blue-800', 'border-blue-200'); statusBox.classList.add('bg-red-50', 'text-red-800', 'border-red-200'); statusTitle.innerText = "Erro"; statusMsg.innerText = "Falha ao ler o arquivo Excel. Verifique se é um arquivo .xlsx válido.";
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function renderCalcPreview(data) {
-        const previewSection = document.getElementById('calcPreviewSection'); const thead = document.getElementById('calcPreviewHead'); const tbody = document.getElementById('calcPreviewBody');
-        if (!data || data.length === 0) return;
-        const keys = Object.keys(data[0]); let headHtml = '<tr class="bg-slate-100/50 text-slate-500">';
-        keys.forEach(k => { const isCalc = k === "DATA VENCIMENTO CALCULADA" || k.toUpperCase() === 'AB'; const colorClass = isCalc ? 'text-blue-600 font-black' : 'font-semibold'; headHtml += `<th class="px-4 py-3 border-b border-slate-200 whitespace-nowrap ${colorClass}">${k}</th>`; });
-        headHtml += '</tr>'; thead.innerHTML = headHtml;
-        let bodyHtml = '';
-        data.slice(0, 30).forEach(row => {
-            bodyHtml += '<tr class="hover:bg-slate-50">';
-            keys.forEach(k => { const val = row[k] || ''; const isCalc = k === "DATA VENCIMENTO CALCULADA" || k.toUpperCase() === 'AB'; const bgClass = isCalc ? 'bg-blue-50/20 font-bold text-blue-800' : 'text-slate-600'; bodyHtml += `<td class="px-4 py-2 border-b border-slate-50 truncate max-w-[150px] ${bgClass}">${val}</td>`; });
-            bodyHtml += '</tr>';
-        });
-        if(data.length > 30) { bodyHtml += `<tr><td colspan="${keys.length}" class="px-4 py-3 text-center text-[10px] text-slate-400 italic bg-slate-50/50">+ ${data.length - 30} linhas processadas e ocultas nesta prévia</td></tr>`; }
-        tbody.innerHTML = bodyHtml; previewSection.classList.remove('hidden'); lucide.createIcons();
-    }
-
-    function downloadCalculatedCSV() {
-        if (!calcProcessedData || calcProcessedData.length === 0) return;
-        const csv = Papa.unparse(calcProcessedData, { delimiter: ";", quotes: true, header: false }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", "dados_sistema_imbera.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    }
-
-    function exportarDBCsv() {
-        if (!dbRawData || dbRawData.length === 0) return alert("Não há dados para exportar.");
-        let headerRow = dbColumns.join(";"); let csvContent = headerRow + "\n";
-        dbRawData.forEach(row => { let rowArray = dbColumns.map(col => { let val = row[col] || ""; return `"${String(val).replace(/"/g, '""')}"`; }); csvContent += rowArray.join(";") + "\n"; });
-        let blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); let url = URL.createObjectURL(blob); let a = document.createElement("a"); a.href = url; a.download = "imbera_base_dados_calculada.csv"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    }
-
-    function clearDatabase() {
-        if(!checkPermission()) return; saveStateToHistory(); 
-        if(confirm("Confirma limpar TODOS os dados?")) { localStorage.removeItem('sla_dashboard_data_v10'); localStorage.removeItem('ntp_dashboard_data_v10'); localStorage.removeItem('db_dashboard_data_v10'); rawData = []; ntpRawData = []; dbRawData = []; dbColumns = []; init(); }
-    }
-
-    function switchTab(tab) {
-        const slaBtn = document.getElementById('btn-sla'); const ntpBtn = document.getElementById('btn-ntp');
-        if (['calc', 'repair', 'db'].includes(tab)) { slaBtn.classList.remove('active'); slaBtn.classList.add('inactive'); ntpBtn.classList.remove('active'); ntpBtn.classList.add('inactive'); } 
-        else { document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active', 'inactive'); btn.classList.add('inactive'); }); const btn = document.getElementById('btn-' + tab); if(btn) { btn.classList.remove('inactive'); btn.classList.add('active'); } }
-        ['sla','ntp','db','calc', 'repair'].forEach(v => { document.getElementById('view-' + v)?.classList.add('hidden'); }); document.getElementById('view-' + tab)?.classList.remove('hidden');
-        if(tab === 'ntp') processNTPData(); if(tab === 'db') renderDatabase(); lucide.createIcons();
-    }
-
-    function changeYear(year) { currentYear = (year === 'Todos') ? 'Todos' : parseInt(year); updateDashboard(); processNTPData(); }
-    function checkDateFilter(obj) { if (currentYear === 'Todos') return true; return obj.ano === currentYear; }
-    function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
-    function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
-
-    async function handleFileSelect(event, type) {
-        if (!checkPermission()) { event.target.value = ''; return; }
-        const files = event.target.files; if (!files || files.length === 0) return;
-        closeUploadMenu(); showLoading(); saveStateToHistory(); 
-        let processedCount = 0; let totalFiles = files.length; let combinedHeaders = null;
-
-        for (let i = 0; i < totalFiles; i++) {
-            const file = files[i];
-            await new Promise((resolve) => { Papa.parse(file, { header: true, skipEmptyLines: true, worker: false, encoding: "ISO-8859-1", complete: function(results) { if(results.data && results.data.length > 0) { if (!combinedHeaders) combinedHeaders = results.meta.fields; if (type === 'ntp') { parseNTPCSV(results.data, results.meta.fields, false); } else if (type === 'sla_abertura') { mergeSlaData(results.data, results.meta.fields, 'abertura', false); } else if (type === 'sla_fechamento') { mergeSlaData(results.data, results.meta.fields, 'fechamento', false); } } resolve(); }, error: function(err) { console.error(err); resolve(); } }); });
-            processedCount++; document.getElementById('loadingText').innerText = `Processando arquivo ${processedCount} de ${totalFiles}...`;
-        }
-
-        try { if (type === 'ntp') { localStorage.setItem('ntp_dashboard_data_v10', JSON.stringify(ntpRawData)); if(ntpRawData.length > 0 && (!dbColumns || dbColumns.length === 0)) dbColumns = combinedHeaders; localStorage.setItem('db_dashboard_data_v10', JSON.stringify({ cols: dbColumns, rows: dbRawData.slice(0, 300) })); } else { localStorage.setItem('sla_dashboard_data_v10', JSON.stringify(rawData)); } } catch (e) { alert("Memória Local cheia!"); }
-        if (type === 'ntp') { processNTPData(); renderDatabase(); } else { init(); }
-        hideLoading(); event.target.value = ''; alert(`Processamento concluído!`);
-    }
-
-    function toggleUploadMenu(event) { event.stopPropagation(); document.getElementById('slaUploadMenu').classList.toggle('show'); document.addEventListener('click', closeUploadMenu); }
-    function closeUploadMenu() { document.getElementById('slaUploadMenu')?.classList.remove('show'); document.removeEventListener('click', closeUploadMenu); }
-    function downloadSlaTemplate() { const headers = ["Unidade", "Data Abertura", "AB", "FC", "Status", "UF", "OS", "SLA DE ATENDIMENTO"]; const exampleRow1 = ["CD São Paulo", "01/01/2026", "01/01/2026", "", "Aberto", "SP", "505500", "MEDIO"]; const csvContent = "data:text/csv;charset=utf-8," + headers.join(";") + "\n" + exampleRow1.join(";"); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "modelo.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); closeUploadMenu(); }
-    function findHeader(headers, patterns) { if(!headers) return null; for (const p of patterns) { const found = headers.find(h => h.trim().toUpperCase() === p.toUpperCase()); if (found) return found; } for (const p of patterns) { const rx = new RegExp(p, 'i'); const found = headers.find(h => rx.test(h)); if (found) return found; } return null; }
-    function cleanUnitName(name) { if(!name) return "Indefinido"; return name.replace(/^[0-9]+\s*[-–]\s*/, '').trim(); }
-    function parseDateToIso(dateStr) { if (!dateStr || typeof dateStr !== 'string') return null; let cleanDate = dateStr.trim(); if (cleanDate.includes(' ')) cleanDate = cleanDate.split(' ')[0]; const br = /^([0-9]{1,2})[\/\-]([0-9]{1,2})[\/\-]([0-9]{2,4})/.exec(cleanDate); if (br) { let y = br[3]; let m = br[2]; let d = br[1]; if (y.length === 2) y = '20' + y; return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`; } const iso = /^([0-9]{4})[-\/]([0-9]{1,2})[-\/]([0-9]{1,2})/.exec(cleanDate); if (iso) return `${iso[1]}-${iso[2].padStart(2,'0')}-${iso[3].padStart(2,'0')}`; return null; }
-    function getMonthNameFromIso(isoDate) { if (!isoDate) return null; const months = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO']; const parts = isoDate.split('-'); if (parts.length > 1) { const mIdx = parseInt(parts[1], 10) - 1; if (mIdx >= 0 && mIdx <= 11) return months[mIdx]; } return null; }
-    
-    function mergeSlaData(rows, headers, forcedType, autoSave = true) {
-        if (!rows || !rows.length) return;
-        let dataTargetHdr = forcedType === 'abertura' ? findHeader(headers, ['AB', 'Data Abertura', 'date', 'emissao']) : findHeader(headers, ['FC', 'Fechamento', 'Conclusao', 'Data Fim']);
-        const unidadeHdr = headers[0]; const statusHdr = findHeader(headers, ['status', 'situacao', 'fase', 'estado']); const osHdr = findHeader(headers, ['os', 'pedido', 'chamado', 'order', 'protocolo']); 
-        const colClassificacaoSla = findHeader(headers, ['SLA DE ATENDIMENTO', 'Classificação', 'Classificacao', 'Prioridade', 'SLA', 'Nível']);
-        const estadoHdr = findHeader(headers, ['UF', 'Estado', 'ESTADO']); 
-        
-        // Headers para métricas adicionais com extra robustez e validações normalizadas
-        const colLancPeca = findHeader(headers, ['DATA LANÇAMENTO DA PEÇA', 'DATA LANCAMENTO DA PECA', 'DATA LANÇAMENTO DA PECA']);
-        const colSituacao = findHeader(headers, ['Situação', 'Situacao', 'SITUACAO', 'SITUAÇÃO']);
-        const colSolucao = findHeader(headers, ['Solução', 'Solucao', 'SOLUCAO', 'SOLUÇÃO', 'AM', 'Solução Final', 'Solucao Final']);
-        
-        const dataMap = {}; rawData.forEach(item => { dataMap[item.idKey] = item; }); 
-        
-        rows.forEach(r => {
-            let unidade = unidadeHdr ? (r[unidadeHdr] || '') : ''; unidade = unidade ? cleanUnitName(unidade) : 'Indefinido';
-            let dataOriginal = dataTargetHdr && r[dataTargetHdr] ? r[dataTargetHdr] : '';
-            let dtIso = parseDateToIso(dataOriginal); let rowYear = currentYear !== 'Todos' ? currentYear : 2026; let mes = "INDEFINIDO"; 
-            if (dtIso) { rowYear = parseInt(dtIso.split('-')[0]); const mName = getMonthNameFromIso(dtIso); if (mName) mes = mName; }
-            let estado = estadoHdr && r[estadoHdr] ? r[estadoHdr] : "SP";
-            const idKey = `${unidade}-${mes}-${rowYear}`;
-            
-            if (!dataMap[idKey]) dataMap[idKey] = { idKey, unidade, estado: estado, mes, ano: rowYear, aberturas: 0, fechamentos: 0, ntps: 0, reincidencias: 0, trocas: 0, ordersList: [], fechamentosList: [] };
-            
-            if (forcedType === 'fechamento') { 
-                if(!dataMap[idKey].fechamentosList) dataMap[idKey].fechamentosList = []; 
-                dataMap[idKey].fechamentosList.push({ data: dataOriginal, dateIso: dtIso }); 
-                dataMap[idKey].fechamentos++; 
-            } else if (forcedType === 'abertura') { 
-                const st = statusHdr ? (r[statusHdr] || 'Indefinido') : 'Indefinido'; 
-                const os = osHdr ? (r[osHdr] || 'N/A') : 'N/A';
-                
-                let classificacao = colClassificacaoSla ? (r[colClassificacaoSla] || 'BAIXO') : 'BAIXO'; 
-                let finalVencIso = null;
-                let finalVencStr = "";
-
-                if (dtIso) {
-                    finalVencIso = calcularVencimento(dtIso, classificacao, "SP");
-                    if(finalVencIso) finalVencStr = finalVencIso.split('-').reverse().join('/');
-                }
-
-                // Lógica de Identificação Robusta
-                let isNtp = false;
-                if (colLancPeca && r[colLancPeca] && String(r[colLancPeca]).trim() !== '') {
-                    dataMap[idKey].ntps++;
-                    isNtp = true;
-                }
-                
-                let isReinc = false;
-                if (colSituacao && r[colSituacao]) {
-                    const valSit = String(r[colSituacao]).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                    if (valSit.includes('reincidencia')) {
-                        dataMap[idKey].reincidencias++;
-                        isReinc = true;
-                    }
-                }
-                
-                // MUDANÇA: Validação exata e mais robusta para Troca Técnica
-                let isTroca = false;
-                if (colSolucao && r[colSolucao]) {
-                    const valSolOriginal = String(r[colSolucao]).toLowerCase();
-                    if (valSolOriginal.includes('solicitar troca de equipamento') || 
-                        valSolOriginal.includes('troca técnica') || 
-                        valSolOriginal.includes('troca tecnica')) {
-                        dataMap[idKey].trocas++;
-                        isTroca = true;
-                    }
-                }
-
-                if(!dataMap[idKey].ordersList) dataMap[idKey].ordersList = []; 
-                dataMap[idKey].ordersList.push({ 
-                    os, 
-                    statusOriginal: st, 
-                    data: dataOriginal, 
-                    dateIso: dtIso, 
-                    vencimento: finalVencStr, 
-                    vencimentoIso: finalVencIso,
-                    classificacaoSla: classificacao,
-                    isNtp: isNtp,
-                    rawRow: r
-                }); 
-                dataMap[idKey].aberturas++; 
-            }
-        });
-        rawData = Object.values(dataMap); if(autoSave) { try { localStorage.setItem('sla_dashboard_data_v10', JSON.stringify(rawData)); init(); } catch(e) {} }
-    }
-
-    // MUDANÇA: Função de parse NTP agora prioriza a data de lançamento da peça
-    function parseNTPCSV(rows, headers, autoSave = true) {
-        if (!rows || !rows.length) return;
-        const colDataOriginal = findHeader(headers, ['Data Abertura', 'Abertura', 'Criado em', 'Data']); 
-        // Procurando a coluna de LANÇAMENTO DA PEÇA (S)
-        const colDataLancPeca = findHeader(headers, ['DATA LANÇAMENTO DA PEÇA', 'DATA LANCAMENTO DA PECA', 'DATA LANÇAMENTO DA PECA']);
-        
-        const colFinalizado = findHeader(headers, ['Data Fechamento', 'Conclusão', 'Encerrado', 'Fim']); const colStatus = findHeader(headers, ['Status', 'Situacao', 'Status do Pedido']); const colId = findHeader(headers, ['Chamado', 'ID', 'OS', 'Ticket']); const colUnidade = findHeader(headers, ['Unidade', 'Cliente', 'Loja']); const colTecnico = findHeader(headers, ['Técnico', 'Atendente', 'Responsável']); const colPosto = findHeader(headers, ['Posto', 'Nome Posto', 'Autorizada', 'Prestador']); 
-        const colClassificacao = findHeader(headers, ['SLA DE ATENDIMENTO', 'Classificação', 'Classificacao', 'Prioridade', 'SLA', 'Nível']);
-        
-        if (!dbColumns.includes('Vencimento Calculado (Auto)')) dbColumns.push('Vencimento Calculado (Auto)'); if (!dbColumns.includes('Status Prazo Calc')) dbColumns.push('Status Prazo Calc');
-        let data = ntpRawData; 
-        
-        rows.forEach(row => {
-            const rowStr = JSON.stringify(row).toUpperCase(); const statusVal = colStatus ? (row[colStatus] || '') : '';
-            
-            // Lógica para utilizar a DATA LANÇAMENTO DA PEÇA como prioridade para o gráfico
-            let rawDate = "";
-            if (colDataLancPeca && row[colDataLancPeca] && String(row[colDataLancPeca]).trim() !== '') {
-                rawDate = row[colDataLancPeca];
-            } else if (colDataOriginal && row[colDataOriginal]) {
-                rawDate = row[colDataOriginal];
-            }
-            
-            let dateIso = "N/A"; let year = null; let dtParsed = parseDateToIso(rawDate); if(dtParsed) { dateIso = dtParsed; year = parseInt(dtParsed.split('-')[0]); }
-            let rawFim = colFinalizado ? (row[colFinalizado] || '') : ''; let fimIso = parseDateToIso(rawFim);
-            
-            let vencIso = null;
-            let vencStr = "";
-            
-            if (dateIso !== "N/A") {
-                let classificacao = colClassificacao ? row[colClassificacao] : 'BAIXO'; 
-                vencIso = calcularVencimento(dateIso, classificacao, 'SP');
-                if (vencIso) {
-                    vencStr = vencIso.split('-').reverse().join('/');
-                }
-            }
-
-            let smart = calculateSmartStatus(statusVal, vencIso, fimIso);
-            row['Vencimento Calculado (Auto)'] = vencStr; row['Status Prazo Calc'] = smart.text; dbRawData.push(row);
-            
-            let isExplicitNTP = rowStr.includes('NTP') || statusVal.toUpperCase().includes('NTP');
-            if (!isExplicitNTP && !row._forceNTP) return;
-            
-            let rawUnit = colUnidade ? (row[colUnidade] || '') : ''; let unitClean = cleanUnitName(rawUnit.replace(/"/g, '')); let rawPosto = colPosto ? (row[colPosto]||"") : "";
-            
-            data.push({ 
-                id: colId ? (row[colId]||'') : '', 
-                unidade: unitClean||'Indefinido', 
-                tecnico: colTecnico ? (row[colTecnico]||'').trim() : '', 
-                data: dateIso, 
-                ano: year, 
-                originalStatus: statusVal, 
-                finalizadoIso: fimIso, 
-                finalizado: rawFim, 
-                vencimento: vencStr, 
-                vencimentoIso: vencIso, 
-                nomePosto: rawPosto, 
-                extras: row 
-            });
-        });
-        ntpRawData = data; if(autoSave) { try { localStorage.setItem('ntp_dashboard_data_v10', JSON.stringify(ntpRawData)); localStorage.setItem('db_dashboard_data_v10', JSON.stringify({ cols: dbColumns, rows: dbRawData.slice(0, 300) })); processNTPData(); renderDatabase(); } catch(e) { } }
-    }
-
-    function populateUnidadeFilter() { const select = document.getElementById('unidadeFilter'); if(!select) return; const unidades = [...new Set(rawData.map(i => i.unidade))].sort(); select.innerHTML = '<option value="Todas">Todas Unidades</option>'; unidades.forEach(u => { const op = document.createElement('option'); op.value = u; op.innerText = u; select.appendChild(op); }); }
-    function changeUnidade(val) { activeUnidade = val; updateDashboard(); }
-    function changeEstado(val) { activeEstado = val; updateDashboard(); }
-
-    function toggleSlaTimeView() { 
-        const checkBox = document.getElementById('slaViewToggle');
-        slaTimeView = checkBox.checked ? 'daily' : 'monthly'; 
-        updateDashboard(); 
-    }
-    
-    // MUDANÇA: Nova função de Toggle para o Chart de NTP
-    function toggleNtpTimeView() {
-        const checkBox = document.getElementById('ntpViewToggle');
-        ntpTimeView = checkBox.checked ? 'daily' : 'monthly'; 
-        filterNtpTable(); // Re-renderiza chamando a cascata do filtro NTP
-    }
-
-    function updateDashboard() {
-        let filteredObjects = rawData.filter(d => checkDateFilter(d));
-        if (typeof activeUnidade !== 'undefined' && activeUnidade !== "Todas") filteredObjects = filteredObjects.filter(d => d.unidade === activeUnidade);
-        const estSelect = document.getElementById('estadoFilter'); if(estSelect){ const uniqueEst = [...new Set(filteredObjects.map(d => d.estado))].sort(); const prev = estSelect.value; estSelect.innerHTML = '<option value="Todos">Todos Estados</option>'; uniqueEst.forEach(uf => { estSelect.innerHTML += `<option value="${uf}">${uf}</option>`; }); estSelect.value = uniqueEst.includes(prev) ? prev : "Todos"; }
-        if(typeof activeEstado !== 'undefined' && activeEstado !== "Todos") filteredObjects = filteredObjects.filter(d => d.estado === activeEstado);
-        
-        let totalAbs = 0; let totalFec = 0;
-        let totalNtp = 0; let totalReinc = 0; let totalTroca = 0;
-
-        let displayData = filteredObjects.map(obj => { 
-            totalAbs += (obj.aberturas || 0); 
-            totalFec += (obj.fechamentos || 0); 
-            totalNtp += (obj.ntps || 0);
-            totalReinc += (obj.reincidencias || 0);
-            totalTroca += (obj.trocas || 0);
-            return { ...obj, calcAberturas: obj.aberturas, calcFechamentos: obj.fechamentos }; 
-        });
-
-        let slaRate = totalAbs > 0 ? (totalFec / totalAbs) * 100 : 0; if(slaRate > 100) slaRate = 100;
-        
-        document.getElementById('statAberturas').innerText = totalAbs.toLocaleString(); 
-        document.getElementById('statFechamentos').innerText = totalFec.toLocaleString(); 
-        document.getElementById('statSLA').innerText = slaRate.toFixed(1) + '%';
-        const box = document.getElementById('slaColorBox'); if(box) box.className = `p-2.5 rounded-lg transition-colors shrink-0 ${slaRate>=90?'bg-emerald-100 text-emerald-600':(slaRate>=75?'bg-yellow-100 text-yellow-600':'bg-rose-100 text-rose-600')}`;
-        
-        document.getElementById('statNTP').innerText = totalNtp.toLocaleString();
-        document.getElementById('percNTP').innerText = totalAbs > 0 ? ((totalNtp/totalAbs)*100).toFixed(1) + '%' : '0%';
-        
-        document.getElementById('statReincidencia').innerText = totalReinc.toLocaleString();
-        document.getElementById('percReincidencia').innerText = totalAbs > 0 ? ((totalReinc/totalAbs)*100).toFixed(1) + '%' : '0%';
-        
-        document.getElementById('statTroca').innerText = totalTroca.toLocaleString();
-        document.getElementById('percTroca').innerText = totalAbs > 0 ? ((totalTroca/totalAbs)*100).toFixed(1) + '%' : '0%';
-
-        updateSlaCharts(displayData); filterSlaTable(displayData, true);
-    }
-
-    function sendNtpToTab() {
-        let ntpRows = [];
-        let filteredObjects = rawData.filter(d => checkDateFilter(d));
-        if (typeof activeUnidade !== 'undefined' && activeUnidade !== "Todas") filteredObjects = filteredObjects.filter(d => d.unidade === activeUnidade);
-        if (typeof activeEstado !== 'undefined' && activeEstado !== "Todos") filteredObjects = filteredObjects.filter(d => d.estado === activeEstado);
-
-        filteredObjects.forEach(item => {
-            if(item.ordersList) {
-                item.ordersList.forEach(order => {
-                    if(order.isNtp && order.rawRow) {
-                        ntpRows.push({ ...order.rawRow, _forceNTP: true });
-                    }
-                });
-            }
-        });
-
-        if (ntpRows.length === 0) {
-            alert("Nenhuma NTP encontrada nos dados filtrados.");
-            return;
-        }
-
-        let headers = Object.keys(ntpRows[0]);
-        
-        let existingOs = new Set(ntpRawData.map(n => n.id));
-        let newRows = ntpRows.filter(r => {
-            let osKey = r['OS'] || r['os'] || r['Chamado'] || r['ID']; 
-            if (!osKey) return true;
-            if (existingOs.has(osKey)) return false;
-            return true;
-        });
-
-        if (newRows.length > 0) {
-            parseNTPCSV(newRows, headers, true);
-            alert(`${newRows.length} novas NTPs enviadas para a aba NTP!`);
-        } else {
-            alert("As NTPs atuais já foram enviadas ou cadastradas na aba NTP.");
-        }
-        
-        switchTab('ntp');
-    }
-
-    function updateSlaCharts(data) {
-        let labels = []; let absData = []; let fecData = []; let slaData = [];
-        
-        if(slaTimeView === 'monthly') {
-            const months = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
-            const mData = months.map(m => { const sub = data.filter(d => d.mes === m); const abs = sub.reduce((a,c) => a+(c.calcAberturas||0), 0); const fec = sub.reduce((a,c) => a+(c.calcFechamentos||0), 0); let sla = abs > 0 ? (fec/abs)*100 : 0; if(sla > 100) sla = 100; return { m, abs, fec, sla }; });
-            labels = months.map(m=>m.substring(0,3)); absData = mData.map(d=>d.abs); fecData = mData.map(d=>d.fec); slaData = mData.map(d=>d.sla);
-        } else {
-            let dailyMap = {}; 
-            data.forEach(item => { 
-                if(item.ordersList) { 
-                    item.ordersList.forEach(o => { 
-                        if(o.dateIso) { 
-                            if(!dailyMap[o.dateIso]) dailyMap[o.dateIso] = {abs:0, fec:0}; 
-                            dailyMap[o.dateIso].abs++; 
-                        } 
-                    }); 
-                } 
-                if(item.fechamentosList) { 
-                    item.fechamentosList.forEach(f => { 
-                        if(f.dateIso) { 
-                            if(!dailyMap[f.dateIso]) dailyMap[f.dateIso] = {abs:0, fec:0}; 
-                            dailyMap[f.dateIso].fec++; 
-                        } 
-                    }); 
-                } 
-            });
-            let allDates = Object.keys(dailyMap).sort(); 
-            labels = allDates.map(d => { const parts = d.split('-'); return `${parts[2]}/${parts[1]}`; }); 
-            absData = allDates.map(d => dailyMap[d].abs); 
-            fecData = allDates.map(d => dailyMap[d].fec); 
-            slaData = allDates.map(d => { let abs = dailyMap[d].abs; let fec = dailyMap[d].fec; let sla = abs > 0 ? (fec/abs)*100 : 0; if (sla > 100) sla = 100; return sla; });
-        }
-
-        if(charts['sla']) charts['sla'].destroy(); const ctxSla = document.getElementById('slaChart').getContext('2d'); const gradientSla = ctxSla.createLinearGradient(0, 0, 0, 300); gradientSla.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); gradientSla.addColorStop(1, 'rgba(37, 99, 235, 0)');
-        const isDark = document.body.classList.contains('dark'); const chartTextColor = isDark ? '#94a3b8' : '#64748b'; Chart.defaults.color = chartTextColor; Chart.defaults.set('plugins.datalabels', { color: isDark ? '#f8fafc' : '#0f172a' });
-        
-        charts['sla'] = new Chart(ctxSla, { 
-            type: 'line', 
-            data: { 
-                labels: labels, 
-                datasets: [{ 
-                    label:'SLA %', 
-                    data: slaData, 
-                    borderColor:'#2563eb', 
-                    borderWidth:3, 
-                    tension:0.4, 
-                    fill:true, 
-                    backgroundColor:gradientSla, 
-                    pointRadius: slaTimeView === 'daily' ? 2 : 0, 
-                    datalabels:{ 
-                        display: slaTimeView === 'daily' ? 'auto' : (context) => context.dataset.data[context.dataIndex] > 0, 
-                        formatter:(v)=>v>0?v.toFixed(0)+'%':'', 
-                        offset: slaTimeView === 'daily' ? 4 : 8, 
-                        align:'top', 
-                        clip: false,
-                        font: { size: slaTimeView === 'daily' ? 9 : 11 }
-                    } 
-                }] 
-            }, 
-            options: { 
-                responsive:true, 
-                maintainAspectRatio:false, 
-                layout: { padding: { top: 35, right: 20, left: 10, bottom: 10 } }, 
-                scales:{ 
-                    y:{ min:0, max:115, ticks: { stepSize: 20, color: chartTextColor } }, 
-                    x:{ grid:{display:false}, ticks: { maxTicksLimit: slaTimeView === 'daily' ? 12 : 15, color: chartTextColor, font: { size: slaTimeView === 'daily' ? 9 : 11 } } } 
-                }, 
-                plugins:{ legend:{display:false} } 
-            } 
-        });
-
-        if(charts['vol']) charts['vol'].destroy(); charts['vol'] = new Chart(document.getElementById('volumeChart'), { type: 'bar', data: { labels: labels, datasets: [ { label:'Abert', data: absData, backgroundColor:'#fca5a5', borderRadius:3, barPercentage: 0.6, categoryPercentage: 0.8 }, { label:'Fech', data: fecData, backgroundColor:'#86efac', borderRadius:3, barPercentage: 0.6, categoryPercentage: 0.8 } ] }, options: { responsive:true, maintainAspectRatio:false, layout: { padding: { top: 30, right: 10, left: 10, bottom: 0 } }, plugins:{ legend:{position:'bottom', labels: { color: chartTextColor }}, datalabels: { display: slaTimeView === 'monthly' ? true : false, anchor: 'end', align: 'top', offset: 0, clip: false, font: { size: 9 }, formatter: function(value) { return value > 0 ? value : ''; } } }, scales:{ x:{ grid:{display:false}, ticks: { maxTicksLimit: 15, color: chartTextColor } }, y: { grace: '15%', ticks: { color: chartTextColor } } } } });
-    }
-
-    function openOrdersModal(idKey) { 
-        const item = rawData.find(i => i.idKey === idKey); 
-        if(!item) return; 
-        let list = item.ordersList || []; 
-        if(list.length === 0 && item.aberturas > 0) list = [{ os: 'Memória Otimizada', data: '-', vencimento: '-', statusOriginal: 'Detalhes ocultos para performance' }]; 
-        currentOrdersList = list; 
-        document.getElementById('ordersModalTitle').innerText = `${item.unidade} - ${item.mes} (${item.ano})`; 
-        
-        ordersFilterState = {};
-        renderOrdersList(currentOrdersList); 
-        document.getElementById('ordersModal').classList.remove('hidden'); 
-    }
-    let currentOrdersList = [];
-    
-    function renderOrdersList(list) { 
-        const tbody = document.getElementById('ordersModalBody'); if(!tbody) return; 
-        if(!list || list.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">Nenhum pedido neste período.</td></tr>'; return; } 
-        let html = ''; 
-        list.slice(0, 500).forEach(order => { 
-            const osLink = (order.os && order.os !== 'N/A' && order.os !== 'Memória Otimizada') ? `<a href="https://imbera.telecontrol.com.br/assist/admin/os_press.php?os=${order.os}" target="_blank" class="text-blue-600 font-bold hover:underline">${order.os}</a>` : (order.os || 'N/A'); 
-            const dynStatus = calculateSmartStatus(order.statusOriginal, order.vencimentoIso, order.dataFechamentoIso); 
-            const colCombined = `${order.classificacaoSla || '-'} / ${order.statusOriginal || '-'}`;
-
-            html += `<tr class="hover:bg-blue-50 transition-colors">
-                        <td class="px-4 py-3 border-b border-slate-100">${osLink}</td>
-                        <td class="px-4 py-3 border-b border-slate-100 text-slate-500 text-[10px]">${order.data || ''}</td>
-                        <td class="px-4 py-3 border-b border-slate-100 font-bold text-slate-700 text-[10px]">${order.vencimento || 'N/A'}</td>
-                        <td class="px-4 py-3 border-b border-slate-100 text-[10px]"><span class="${dynStatus.class}">${dynStatus.text}</span></td>
-                        <td class="px-4 py-3 border-b border-slate-100 text-slate-400 text-[10px] italic">${colCombined}</td>
-                    </tr>`; 
-        }); 
-        tbody.innerHTML = html; 
-    }
-    
-    function toggleOrdersFilter(e, key) {
-        e.stopPropagation();
-        ['os','data','vencimento','statusDyn','classificacao'].forEach(k => {
-            if(k !== key) document.getElementById(`orders-filter-${k}`)?.classList.remove('show');
-        });
-        
-        const dropdown = document.getElementById(`orders-filter-${key}`);
-        if(!dropdown) return;
-        if(dropdown.classList.contains('show')) { dropdown.classList.remove('show'); return; }
-        
-        let uniqueValues = new Set();
-        currentOrdersList.forEach(o => {
-            let val = '';
-            if(key === 'os') val = o.os || 'N/A';
-            if(key === 'data') val = o.data || '';
-            if(key === 'vencimento') val = o.vencimento || 'N/A';
-            if(key === 'statusDyn') {
-                const dynStatus = calculateSmartStatus(o.statusOriginal, o.vencimentoIso, o.dataFechamentoIso);
-                val = dynStatus.text || '';
-            }
-            if(key === 'classificacao') val = `${o.classificacaoSla || '-'} / ${o.statusOriginal || '-'}`;
-            if(val) uniqueValues.add(val);
-        });
-        
-        const sortedValues = [...uniqueValues].sort();
-        
-        let html = `<div onclick="applyOrdersFilter('${key}', 'ALL')" class="text-blue-600 font-bold">Limpar Filtro</div>`;
-        sortedValues.forEach(v => {
-            html += `<div onclick="applyOrdersFilter('${key}', '${(''+v).replace(/'/g,"\\'")}')" class="truncate">${v}</div>`;
-        });
-        dropdown.innerHTML = html;
-        dropdown.classList.add('show');
-        document.addEventListener('click', closeOrdersFilters);
-    }
-
-    function closeOrdersFilters() {
-        document.querySelectorAll('#ordersModal .db-select').forEach(el => el.classList.remove('show'));
-        document.removeEventListener('click', closeOrdersFilters);
-    }
-
-    function applyOrdersFilter(key, value) {
-        if(value === 'ALL') delete ordersFilterState[key];
-        else ordersFilterState[key] = value;
-        filterOrdersGrid();
-    }
-
-    function filterOrdersGrid() {
-        const filtered = currentOrdersList.filter(o => {
-            const dynStatus = calculateSmartStatus(o.statusOriginal, o.vencimentoIso, o.dataFechamentoIso);
-            const combined = `${o.classificacaoSla || '-'} / ${o.statusOriginal || '-'}`;
-            
-            let match = true;
-            if(ordersFilterState['os'] && o.os !== ordersFilterState['os']) match = false;
-            if(ordersFilterState['data'] && o.data !== ordersFilterState['data']) match = false;
-            if(ordersFilterState['vencimento'] && o.vencimento !== ordersFilterState['vencimento']) match = false;
-            if(ordersFilterState['statusDyn'] && dynStatus.text !== ordersFilterState['statusDyn']) match = false;
-            if(ordersFilterState['classificacao'] && combined !== ordersFilterState['classificacao']) match = false;
-            
-            return match;
-        });
-
-        renderOrdersList(filtered);
-    }
-
-    function filterSlaTable(dataSet, isCalculated = false) {
-        let data = dataSet || rawData; if (!isCalculated) data = rawData.filter(d => checkDateFilter(d));
-        const text = document.getElementById('slaTableSearch')?.value?.toLowerCase() || ''; if(text) data = data.filter(r => (r.unidade||'').toLowerCase().includes(text));
-        for(const k in slaFilterState){ const v = slaFilterState[k]; if(!v) continue; data = data.filter(r => (''+ (r[k]||'')).toString() === v); }
-        const tbody = document.getElementById('tableBody'); if(!tbody) return; if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-sm text-slate-400 italic">Nenhum registro encontrado.</td></tr>'; return; }
-        const htmlRows = [];
-        data.slice(0, 300).forEach(row => {
-            const abs = (row.calcAberturas !== undefined) ? row.calcAberturas : row.aberturas; const fec = (row.calcFechamentos !== undefined) ? row.calcFechamentos : row.fechamentos;
-            let sla = abs > 0 ? (fec/abs)*100 : 0; if (sla > 100) sla = 100; 
-            const color = sla >= 90 ? 'text-emerald-600' : (sla>=75?'text-yellow-600':'text-rose-600'); const btnHtml = `<button onclick="openOrdersModal('${row.idKey}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 p-1.5 rounded transition-colors"><i data-lucide="search" class="w-3.5 h-3.5"></i></button>`;
-            htmlRows.push(`<tr class="hover:bg-slate-50 transition-colors"><td class="px-6 py-3 font-normal text-slate-600 border-b border-slate-50 text-[11px]">${row.unidade}</td><td class="px-6 py-3 text-slate-500 font-normal border-b border-slate-50 text-[11px]">${row.mes}/${row.ano}</td><td class="px-6 py-3 border-b border-slate-50 text-[11px] text-center">${btnHtml}</td><td class="px-6 py-3 text-right text-slate-600 border-b border-slate-50 text-[11px] font-normal">${abs}</td><td class="px-6 py-3 text-right text-slate-600 border-b border-slate-50 text-[11px] font-normal">${fec}</td><td class="px-6 py-3 text-right font-black ${color} border-b border-slate-50 text-[11px]">${sla.toFixed(1)}%</td></tr>`);
-        });
-        tbody.innerHTML = htmlRows.join(''); lucide.createIcons();
-    }
-
-    function toggleSlaFilter(e, key, triggerId) { e.stopPropagation(); ['sla-filter-unidade','sla-filter-mes'].forEach(id => { if(id !== `sla-filter-${key}`) document.getElementById(id)?.classList.remove('show'); }); const dropdown = document.getElementById(`sla-filter-${key}`); if(!dropdown) return; if(dropdown.classList.contains('show')) { dropdown.classList.remove('show'); return; } let filtered = rawData.filter(d => checkDateFilter(d)); if (typeof activeUnidade !== 'undefined' && activeUnidade !== "Todas") filtered = filtered.filter(d => d.unidade === activeUnidade); const uniqueValues = [...new Set(filtered.map(r => (''+(r[key]||''))))].filter(v=>v!=='').sort((a,b)=> (isNaN(a)? (''+a).localeCompare(b) : Number(a)-Number(b))); let html = `<div onclick="applySlaFilter('${key}', 'ALL')" class="text-blue-600 font-bold">Limpar Filtro</div>`; uniqueValues.forEach(v => { html += `<div onclick="applySlaFilter('${key}', '${(''+v).replace(/'/g,"\\'")}')" class="truncate">${v}</div>`; }); dropdown.innerHTML = html; dropdown.classList.add('show'); document.addEventListener('click', closeSlaFilters); }
-    function toggleNtpFilter(e, key, triggerId) { e.stopPropagation(); ['ntp-filter-data','ntp-filter-unidade','ntp-filter-status','ntp-filter-id'].forEach(id => { if(id !== `ntp-filter-${key}`) document.getElementById(id)?.classList.remove('show'); }); const dropdown = document.getElementById(`ntp-filter-${key}`); if(dropdown.classList.contains('show')) { dropdown.classList.remove('show'); return; } let filtered = ntpRawData.filter(d => checkDateFilter(d)); const uniqueValues = [...new Set(filtered.map(r => (r[key]||"") ))].filter(v=>v).sort(); let html = `<div onclick="applyNtpFilter('${key}', 'ALL')" class="text-blue-600 font-bold">Limpar Filtro</div>`; uniqueValues.forEach(v => { html += `<div onclick="applyNtpFilter('${key}', '${(v+"").replace(/'/g, "\\'")}')" class="truncate">${v}</div>`; }); dropdown.innerHTML = html; dropdown.classList.add('show'); document.addEventListener('click', closeNtpFilters); }
-    function closeSlaFilters(){ document.querySelectorAll('.db-select').forEach(el => el.classList.remove('show')); document.removeEventListener('click', closeSlaFilters); }
-    function closeNtpFilters() { document.querySelectorAll('.db-select').forEach(el => el.classList.remove('show')); document.removeEventListener('click', closeNtpFilters); }
-    function applySlaFilter(key, value){ if(value === 'ALL') delete slaFilterState[key]; else slaFilterState[key] = value; updateDashboard(); }
-    function applyNtpFilter(key, value) { if(value === 'ALL') delete ntpFilterState[key]; else ntpFilterState[key] = value; filterNtpTable(); }
-
-    function processNTPData() { let baseData = ntpRawData.filter(d => d.ano !== null && checkDateFilter(d)); const units = ["Todos", ...new Set(baseData.map(d => d.unidade))].sort(); const uSelect = document.getElementById('ntpUnitFilter'); if(uSelect){ uSelect.innerHTML = ''; units.forEach(u => { const op = document.createElement('option'); op.value = u; op.innerText = u; uSelect.appendChild(op); }); uSelect.value = "Todos"; } updateNtpFilters('unit'); }
-
-    function updateNtpFilters(changedLevel) { let filtered = ntpRawData.filter(d => checkDateFilter(d)); const uVal = document.getElementById('ntpUnitFilter')?.value || 'Todos'; const pSelect = document.getElementById('ntpPostoFilter'); if(uVal !== "Todos") filtered = filtered.filter(d => d.unidade === uVal); if(changedLevel === 'unit' && pSelect) { const postos = ["Todos", ...new Set(filtered.map(d => d.nomePosto))].sort(); pSelect.innerHTML = ''; postos.forEach(p => { const op = document.createElement('option'); op.value = p; op.innerText = p; pSelect.appendChild(op); }); pSelect.value = "Todos"; } filterNtpTable(); }
-
-    function filterNtpTable() { let data = ntpRawData.filter(d => checkDateFilter(d)); const uVal = document.getElementById('ntpUnitFilter')?.value || 'Todos'; const pVal = document.getElementById('ntpPostoFilter')?.value || 'Todos'; const search = (document.getElementById('ntpSearch')?.value || '').toLowerCase(); if(uVal !== "Todos") data = data.filter(d => d.unidade === uVal); if(pVal !== "Todos") data = data.filter(d => d.nomePosto === pVal); if(search) data = data.filter(d => (d.id||"").toLowerCase().includes(search) || (d.unidade||"").toLowerCase().includes(search) || (d.status||"").toLowerCase().includes(search) || (d.data||"").toLowerCase().includes(search)); for(const k in ntpFilterState) { const v = ntpFilterState[k]; if(!v) continue; data = data.filter(r => ((r[k]||"") + "").toString() === v); } updateNtpVisuals(data); }
-
-    function updateNtpVisuals(data) {
-        const isDark = document.body.classList.contains('dark'); const chartTextColor = isDark ? '#94a3b8' : '#64748b'; Chart.defaults.color = chartTextColor;
-        
-        // MUDANÇA: Lógica de visão Diária vs Mensal para o Gráfico de NTP
-        let labelsLine = [];
-        let ntpChartData = [];
-        
-        if (ntpTimeView === 'monthly') {
-            labelsLine = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-            const monthCounts = Array(12).fill(0);
-            data.forEach(d => { 
-                if(d.data && d.data !== 'N/A') { 
-                    const parts = d.data.split('-'); 
-                    const monthIndex = parseInt(parts[1]) - 1; 
-                    if (monthIndex >= 0 && monthIndex < 12) { 
-                        monthCounts[monthIndex]++; 
-                    } 
-                } 
-            });
-            ntpChartData = monthCounts;
-        } else {
-            let dailyMap = {};
-            data.forEach(d => {
-                if(d.data && d.data !== 'N/A') {
-                    if(!dailyMap[d.data]) dailyMap[d.data] = 0;
-                    dailyMap[d.data]++;
-                }
-            });
-            let allDates = Object.keys(dailyMap).sort();
-            labelsLine = allDates.map(d => { const parts = d.split('-'); return `${parts[2]}/${parts[1]}`; });
-            ntpChartData = allDates.map(d => dailyMap[d]);
-        }
-
-        const statusCounts = { 'Finalizados': Array(12).fill(0), 'Pendentes': Array(12).fill(0) }; 
-        data.forEach(d => { 
-            if(d.data && d.data !== 'N/A') { 
-                const parts = d.data.split('-'); 
-                const monthIndex = parseInt(parts[1]) - 1; 
-                if (monthIndex >= 0 && monthIndex < 12) { 
-                    if((d.originalStatus || d.status || "").toUpperCase().includes("FINAL") || d.finalizado) statusCounts['Finalizados'][monthIndex]++; 
-                    else statusCounts['Pendentes'][monthIndex]++; 
-                } 
-            } 
-        });
-
-        if(charts['ntpLine']) charts['ntpLine'].destroy(); 
-        const ctxLine = document.getElementById('ntpChart').getContext('2d'); 
-        const gradLine = ctxLine.createLinearGradient(0, 0, 0, 300); gradLine.addColorStop(0, 'rgba(244, 63, 94, 0.4)'); gradLine.addColorStop(1, 'rgba(244, 63, 94, 0)'); 
-        charts['ntpLine'] = new Chart(ctxLine, { 
-            type: 'line', 
-            data: { 
-                labels: labelsLine, 
-                datasets: [{ 
-                    label: 'NTPs', 
-                    data: ntpChartData, 
-                    borderColor: '#f43f5e', 
-                    borderWidth: 3, 
-                    backgroundColor: gradLine, 
-                    fill: true, 
-                    tension: 0.4, 
-                    pointRadius: ntpTimeView === 'daily' ? 2 : 0 
-                }] 
-            }, 
-            options: { 
-                responsive:true, 
-                maintainAspectRatio:false, 
-                layout: { padding: { top: 20, right: 10, left: 10, bottom: 0 } }, 
-                plugins:{legend:{display:false}}, 
-                scales:{
-                    x:{grid:{display:false}, ticks: {color: chartTextColor, maxTicksLimit: ntpTimeView === 'daily' ? 12 : 12}}, 
-                    y:{beginAtZero:true, grace: '5%', ticks: {color: chartTextColor}}
-                } 
-            }
-        });
-
-        const counts = {}; data.forEach(d => { counts[d.unidade] = (counts[d.unidade]||0) + 1; }); const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 10); if(charts['ntpBar']) charts['ntpBar'].destroy(); charts['ntpBar'] = new Chart(document.getElementById('ntpBarChart'), { type: 'bar', data: { labels: sorted.map(i => i[0]), datasets: [{ label: 'Qtd', data: sorted.map(i => i[1]), backgroundColor: ['#1e293b', '#334155', '#475569', '#64748b', '#94a3b8'], borderRadius:4 }] }, options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, layout: { padding: { right: 30, left: 0 } }, plugins:{legend:{display:false}}, scales:{x:{display:false, ticks: {color: chartTextColor}}, y:{grid:{display:false}, ticks: {color: chartTextColor}}} }});
-        if(charts['ntpYear']) charts['ntpYear'].destroy(); charts['ntpYear'] = new Chart(document.getElementById('ntpYearChart'), { type: 'bar', data: { labels: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"], datasets: [{ label: 'Finalizados', data: statusCounts['Finalizados'], backgroundColor: '#10b981' }, { label: 'Pendentes', data: statusCounts['Pendentes'], backgroundColor: '#f43f5e' }] }, options: { responsive:true, maintainAspectRatio:false, layout: { padding: { top: 20, right: 0 } }, plugins:{ legend:{ position:'top', labels:{boxWidth:10, font:{size:9}, color: chartTextColor} }, datalabels: { display: false } }, scales:{ x:{ stacked:true, grid:{display:false}, ticks: {color: chartTextColor} }, y:{ stacked:true, beginAtZero:true, grace: '5%', ticks: {color: chartTextColor} } } }});
-        
-        const totalAll = ntpRawData.length || 1; document.getElementById('ntpPercentBadge').innerText = `${data.length} NTPs (${((data.length/totalAll)*100).toFixed(1)}% do DB)`;
-        
-        const tbody = document.getElementById('ntpTableBody'); if(!tbody) return; if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-sm text-slate-400 italic">Nenhum registro encontrado.</td></tr>'; return; }
-        const htmlRows = []; 
-        data.slice(0, 300).forEach((row) => { 
-            const dynSmart = calculateSmartStatus(row.originalStatus || row.status, row.vencimentoIso, row.finalizadoIso);
-            row.status = dynSmart.text; row.statusClass = dynSmart.class;
-            
-            const rowJson = JSON.stringify(row).replace(/'/g, "&apos;"); 
-            htmlRows.push(`<tr class="hover:bg-rose-50 cursor-pointer transition-colors" onclick='openModal("infoModal", ${rowJson})'>
-                <td class="px-6 py-3 text-slate-500 border-b border-slate-50 text-[10px]">${row.data}</td>
-                <td class="px-6 py-3 font-bold text-slate-700 border-b border-slate-50 text-[10px]">${row.unidade}</td>
-                <td class="px-6 py-3 border-b border-slate-50 text-[10px]"><span class="${dynSmart.class}">${dynSmart.text}</span></td>
-                <td class="px-6 py-3 border-b border-slate-50"><a href="https://imbera.telecontrol.com.br/assist/admin/os_press.php?os=${row.id}" target="_blank" onclick="event.stopPropagation()" class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[9px] font-bold hover:bg-rose-200 hover:text-rose-900 transition-colors cursor-pointer" title="Abrir OS">${row.id}</a></td>
-            </tr>`); 
-        }); 
-        tbody.innerHTML = htmlRows.join('');
-    }
-
-    function openModal(modalId, rowData = null) {
-        if(modalId === 'infoModal' && rowData) { const content = document.getElementById('modalContent'); let vencHTML = `<p class="font-bold text-slate-400 italic">Não informado</p>`; if(rowData.vencimento) { const isExpired = rowData.statusClass.includes('red') || rowData.statusClass.includes('rose'); const color = isExpired ? 'text-rose-600' : (rowData.statusClass.includes('orange')?'text-orange-600':'text-blue-600'); vencHTML = `<p class="font-black ${color} text-base">${rowData.vencimento}</p>`; } let html = `<div class="space-y-4"><div class="grid grid-cols-2 gap-4"><div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><p class="text-[10px] uppercase text-slate-400 font-bold">Unidade</p><p class="font-bold text-slate-700 text-xs">${rowData.unidade}</p></div><div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><p class="text-[10px] uppercase text-slate-400 font-bold">Técnico</p><p class="font-bold text-slate-700 text-xs">${rowData.tecnico}</p></div><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><p class="text-[10px] uppercase text-blue-400 font-bold">Posto</p><p class="font-bold text-blue-700 text-xs">${rowData.nomePosto}</p></div><div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100"><p class="text-[10px] uppercase text-emerald-400 font-bold">Finalizado Em</p><p class="font-bold text-emerald-700 text-xs">${rowData.finalizado || 'Em andamento'}</p></div></div><div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-center"><p class="text-[10px] uppercase text-yellow-600 font-black tracking-widest mb-1">DATA DE VENCIMENTO</p>${vencHTML}<div class="mt-2 text-xs font-bold text-slate-500 border-t pt-2 border-yellow-200">Status Atual: <span class="${rowData.statusClass}">${rowData.status}</span></div></div><h4 class="font-bold text-slate-800 text-xs border-b pb-2 pt-2 uppercase tracking-wide">Dados Completos</h4><div class="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto custom-scrollbar pr-2">`; if(rowData.extras) { Object.entries(rowData.extras).forEach(([k,v]) => { if(v && (''+v).trim() !== "") html += `<div class="flex justify-between border-b border-slate-50 py-1 text-[10px]"><span class="text-slate-500 font-medium">${k}:</span><span class="font-bold text-slate-700 text-right truncate max-w-[200px]">${v}</span></div>`; }); } html += `</div></div>`; content.innerHTML = html; } document.getElementById(modalId).classList.remove('hidden');
-    }
-    function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
-
-    function exportSlaToPDF() {
-        const element = document.getElementById('exportableSlaArea');
-        const opt = { margin: 0.3, filename: 'SLA_Dashboard_Graficos.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } };
-        alert("Aguarde um momento, o PDF está sendo processado."); html2pdf().set(opt).from(element).save();
-    }
-
-    function renderDatabase() { if(!dbColumns.length) return; const thead = document.getElementById('dbHeader'); let hHtml = '<tr class="bg-slate-100 text-slate-600 sticky top-0 z-10">'; dbColumns.forEach((col, idx) => { hHtml += `<th class="px-4 py-3 font-bold text-[10px] border-b border-slate-200 group min-w-[120px]"><div class="th-content" id="th-db-${idx}">${col}<span onclick="toggleDbFilter(event, ${idx}, 'th-db-${idx}')" class="filter-icon">▼</span></div><div id="filter-dropdown-${idx}" class="db-select custom-scrollbar"></div></th>`; }); hHtml += '</tr>'; thead.innerHTML = hHtml; filterDbTable(); }
-    function toggleDbFilter(e, colIdx, triggerId) { e.stopPropagation(); document.querySelectorAll('.db-select').forEach(el => { if(el.id !== `filter-dropdown-${colIdx}`) el.classList.remove('show'); }); const dropdown = document.getElementById(`filter-dropdown-${colIdx}`); if(dropdown.classList.contains('show')) { dropdown.classList.remove('show'); return; } const filteredForDropdown = dbRawData; const uniqueValues = [...new Set(filteredForDropdown.map(r => r[dbColumns[colIdx]]))].filter(v=>v).sort(); let html = `<div onclick="applyDbFilter(${colIdx}, 'ALL')" class="text-blue-600 font-bold">Limpar Filtro</div>`; uniqueValues.forEach(v => { html += `<div onclick="applyDbFilter(${colIdx}, '${(v+"").replace(/'/g, "\\'")}')" class="truncate">${v}</div>`; }); dropdown.innerHTML = html; dropdown.classList.add('show'); document.addEventListener('click', closeDbFilters); }
-    function closeDbFilters() { document.querySelectorAll('.db-select').forEach(el => el.classList.remove('show')); document.removeEventListener('click', closeDbFilters); }
-    function applyDbFilter(colIdx, value) { if(value === 'ALL') delete dbFilterState[colIdx]; else dbFilterState[colIdx] = value; filterDbTable(); }
-    function filterDbTable() { const tbody = document.getElementById('dbBody'); if(!tbody) return; const dbStart = document.getElementById('dbDateStart').value; const dbEnd = document.getElementById('dbDateEnd').value; let dateColName = findHeader(dbColumns, ['AB', 'Data Abertura', 'date', 'emissao', 'data']); let filtered = dbRawData.filter(row => { for(let idx in dbFilterState) { if(row[dbColumns[idx]] !== dbFilterState[idx]) return false; } if((dbStart || dbEnd) && dateColName) { const rowDate = parseDateToIso(row[dateColName]); if(rowDate && dbStart && rowDate < dbStart) return false; if(rowDate && dbEnd && rowDate > dbEnd) return false; } return true; }); if(filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="${dbColumns.length}" class="p-4 text-center text-sm text-slate-400 italic">Nenhum registro encontrado.</td></tr>`; return; } let htmlRows = []; filtered.slice(0, 500).forEach(row => { let tr = '<tr class="hover:bg-slate-50">'; dbColumns.forEach(col => { tr += `<td class="px-4 py-2 border-b border-slate-100 text-[10px] truncate max-w-[150px]">${row[col] || ''}</td>`; }); tr += '</tr>'; htmlRows.push(tr); }); if(filtered.length > 500) htmlRows.push(`<tr><td colspan="${dbColumns.length}" class="p-2 text-center text-xs text-slate-400 italic">Mostrando 500 de ${filtered.length} registros</td></tr>`); tbody.innerHTML = htmlRows.join(''); }
-    function clearAllNtpFilters() { ntpFilterState = {}; document.getElementById('ntpUnitFilter').value = 'Todos'; document.getElementById('ntpPostoFilter').value = 'Todos'; document.getElementById('ntpSearch').value = ''; updateNtpFilters('unit'); }
-
-    let repairProcessedData = []; let repairFullData = []; 
-    function handleRepairFile(event) {
-        const file = event.target.files[0]; if (!file) return;
-        const osInput = document.getElementById('repairOsInput').value; const targetOS = osInput.split(/[\n,;]+/).map(s => s.trim().toUpperCase()).filter(s => s);
-        if (targetOS.length === 0) { alert("Por favor, cole as OS Cliente antes de importar a planilha."); event.target.value = ''; return; }
-        document.getElementById('loadingOverlay').style.display = 'flex'; document.getElementById('loadingText').innerText = "Filtrando e cruzando diagnósticos inteligentemente...";
-
-        Papa.parse(file, {
-            header: false, skipEmptyLines: true, encoding: "ISO-8859-1",
-            complete: function(results) {
-                let data = results.data; if (!data || data.length === 0) { hideLoading(); return; }
-                let repairColumns = data[0]; let filteredData = [repairColumns]; let fullData = [repairColumns]; let count = 0;
-                let idxAL = 37; let idxAM = 38; let idxAU = 46;
-                let hAU = repairColumns.findIndex(h => typeof h === 'string' && (h.toUpperCase().includes('OS CLIENTE') || h.toUpperCase() === 'AU'));
-                let hAL = repairColumns.findIndex(h => typeof h === 'string' && h.toUpperCase().includes('DEFEITO CONSTATADO'));
-                let hAM = repairColumns.findIndex(h => typeof h === 'string' && h.toUpperCase().includes('SOLU'));
-                if(hAU !== -1) idxAU = hAU; if(hAL !== -1) idxAL = hAL; if(hAM !== -1) idxAM = hAM;
-
-                for (let i = 1; i < data.length; i++) {
-                    let row = data[i]; let osCliente = (row[idxAU] || "").toString().trim().toUpperCase();
-                    if (targetOS.includes(osCliente)) {
-                        let defeitosRaw = row[idxAL] || ""; let solucoesRaw = row[idxAM] || "";
-                        let matched = matchIntelligentDefect(defeitosRaw, solucoesRaw);
-                        row[idxAL] = matched.d; row[idxAM] = matched.s;
-                        filteredData.push(row); count++;
-                    }
-                    fullData.push(row); 
-                }
-                repairProcessedData = filteredData; repairFullData = fullData; 
-                renderRepairPreview(idxAL, idxAM, idxAU); document.getElementById('loadingOverlay').style.display = 'none';
-                if(count === 0) { alert("Nenhuma das OS informadas foi encontrada no arquivo CSV."); } else { alert(`Processamento concluído! ${count} OS foram localizadas, filtradas e corrigidas na base.`); }
-                event.target.value = '';
-            },
-            error: function(err) { console.error(err); document.getElementById('loadingOverlay').style.display = 'none'; alert("Erro ao ler o arquivo CSV."); event.target.value = ''; }
-        });
-    }
-
-    function matchIntelligentDefect(defRaw, solRaw) {
-        if (!defRaw && !solRaw) return { d: "", s: "" };
-        let defs = defRaw.split(',').map(s => s.trim()).filter(s => s); let sols = solRaw.split(',').map(s => s.trim()).filter(s => s);
-        if (defs.length <= 1 && sols.length <= 1) { return { d: defs[0] || defRaw, s: sols[0] || solRaw }; }
-        const getKeywords = (str) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[\s/]+/);
-        let bestMatch = { d: defs[0] || defRaw, s: sols[0] || solRaw, score: -1 };
-        const categoryMaps = [
-            ['gas', 'refrigeracao', 'vazamento', 'carga', 'refrigerante', 'fluido', 'filtro', 'solda', 'obstrucao', 'capilar'],
-            ['motor', 'micromotor', 'condensador', 'ventilador', 'helice', 'compressor', 'queimado', 'rele', 'protetor', 'ptc'],
-            ['placa', 'eletronica', 'display', 'modulo', 'sensor', 'potenciometro', 'chicote', 'cabo', 'fiacao', 'painel', 'controlador'],
-            ['porta', 'borracha', 'gaxeta', 'dobradica', 'mola', 'puxador', 'vidro'],
-            ['termostato', 'temperatura', 'gelando', 'congelando', 'regulagem', 'calibracao'],
-            ['limpeza', 'sujo', 'sujeira', 'higienizacao', 'preventiva', 'dreno']
-        ];
-        for (let d of defs) { let dKeys = getKeywords(d); for (let s of sols) { let sKeys = getKeywords(s); let score = 0; score += dKeys.filter(k => k.length > 3 && sKeys.includes(k)).length * 2; for (let cat of categoryMaps) { let dHasCat = dKeys.some(k => cat.includes(k)); let sHasCat = sKeys.some(k => cat.includes(k)); if (dHasCat && sHasCat) score += 5; } if (score > bestMatch.score) { bestMatch = { d: d, s: s, score: score }; } } }
-        return bestMatch;
-    }
-
-    function renderRepairPreview(idxAL = 37, idxAM = 38, idxAU = 46) {
-        const previewSection = document.getElementById('repairPreviewSection'); const thead = document.getElementById('repairPreviewHead'); const tbody = document.getElementById('repairPreviewBody');
-        if (!repairProcessedData || repairProcessedData.length <= 1) return;
-        let headHtml = '<tr class="bg-slate-100/50 text-slate-500"><th class="px-4 py-3 border-b border-slate-200 whitespace-nowrap">Status</th><th class="px-4 py-3 border-b border-slate-200 whitespace-nowrap font-bold text-orange-600">OS Cliente (AU)</th><th class="px-4 py-3 border-b border-slate-200 whitespace-nowrap font-bold text-blue-600">Defeito Final (AL)</th><th class="px-4 py-3 border-b border-slate-200 whitespace-nowrap font-bold text-emerald-600">Solução Final (AM)</th></tr>';
-        thead.innerHTML = headHtml; let bodyHtml = '';
-        for (let i = 1; i < Math.min(repairProcessedData.length, 100); i++) {
-            let row = repairProcessedData[i];
-            bodyHtml += `<tr class="hover:bg-slate-50"><td class="px-4 py-2 border-b border-slate-50"><span class="bg-emerald-100 text-emerald-600 px-2 rounded text-[9px] font-bold border border-emerald-200"><i data-lucide="check" class="w-3 h-3 inline"></i> Otimizado</span></td><td class="px-4 py-2 border-b border-slate-50 font-bold text-slate-700">${row[idxAU] || ''}</td><td class="px-4 py-2 border-b border-slate-50 text-slate-600 truncate max-w-[250px] bg-blue-50/20" title="${row[idxAL] || ''}">${row[idxAL] || ''}</td><td class="px-4 py-2 border-b border-slate-50 text-slate-600 truncate max-w-[250px] bg-emerald-50/20" title="${row[idxAM] || ''}">${row[idxAM] || ''}</td></tr>`;
-        }
-        if(repairProcessedData.length > 100) { bodyHtml += `<tr><td colspan="4" class="px-4 py-3 text-center text-[10px] text-slate-400 italic bg-slate-50/50">+ ${repairProcessedData.length - 100} linhas processadas e ocultas nesta prévia</td></tr>`; }
-        tbody.innerHTML = bodyHtml; previewSection.classList.remove('hidden'); lucide.createIcons();
-    }
-
-    function downloadRepairCSV() {
-        if (!repairProcessedData || repairProcessedData.length === 0) return;
-        const csv = Papa.unparse(repairProcessedData, { delimiter: ";", quotes: true }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", "os_corrigidas_filtradas.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    }
-    function downloadFullRepairCSV() {
-        if (!repairFullData || repairFullData.length === 0) return;
-        const csv = Papa.unparse(repairFullData, { delimiter: ";", quotes: true }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", "base_completa_corrigida.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    }
-</script>
-<footer class="py-6 mt-8 border-t border-slate-100 text-center">
-    <p class="text-sm text-slate-400">
-        Criado por 
-        <a href="https://imberabrasil.mybeehome.com/directory/2617/profile" 
-           target="_blank" 
-           class="font-bold hover:text-blue-600 transition-colors">
-           Edson Gois
-        </a> 
-        - Aprendiz de PowerBI
-    </p>
-</footer>
+    <footer class="py-6 mt-8 border-t border-slate-100 text-center">
+        <p class="text-sm text-slate-400">
+            Criado por 
+            <a href="https://imberabrasil.mybeehome.com/directory/2617/profile" target="_blank" class="font-bold hover:text-blue-600 transition-colors">Edson Gois</a> 
+            - Aprendiz de PowerBI
+        </p>
+    </footer>
+
+    <script src="scripts.js"></script>
 </body>
 </html>

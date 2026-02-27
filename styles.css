@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; transition: background-color 0.3s; }
+.chart-container { position: relative; height: 300px; width: 100%; }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Navegação Superior */
+.nav-btn.active { background-color: #1e293b; color: white; border-color: #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+.nav-btn.inactive { background-color: white; color: #64748b; border: 1px solid #e2e8f0; }
+.nav-btn.inactive:hover { background-color: #f8fafc; color: #334155; }
+
+.filter-icon { cursor: pointer; color: #94a3b8; font-size: 0.7rem; margin-left: 6px; }
+.filter-icon:hover { color: #2563eb; }
+.th-content { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+
+th { position: relative; } 
+
+/* Dropdown customizado */
+.db-select { 
+    position: absolute; top: 100%; left: 0; margin-top: 5px; z-index: 50; 
+    background: white; border: 1px solid #e2e8f0; 
+    border-radius: 6px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2); 
+    padding: 6px; max-height: 300px; overflow-y: auto; display: none; 
+    width: 220px; text-align: left; font-weight: normal;
+}
+.db-select.show { display: block; }
+.db-select div { padding: 8px 10px; font-size: 11px; cursor: pointer; border-bottom: 1px solid #f1f5f9; color: #334155; }
+.db-select div:last-child { border-bottom: none; }
+.db-select div:hover { background-color: #f0f9ff; color: #0284c7; font-weight: bold; }
+
+.upload-menu {
+    position: absolute; top: 100%; right: 0; z-index: 60;
+    background: white; border: 1px solid #e2e8f0;
+    border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    padding: 4px; min-width: 180px; display: none; margin-top: 4px;
+}
+.upload-menu.show { display: block; animation: fadeIn 0.1s ease-out; }
+.upload-menu button {
+    width: 100%; text-align: left; padding: 10px 12px;
+    font-size: 11px; font-weight: bold; color: #475569;
+    border-radius: 6px; transition: background 0.2s; display: flex; align-items: center; gap: 8px;
+}
+.upload-menu button:hover { background-color: #f1f5f9; color: #0f172a; }
+.upload-menu .divider { height: 1px; background-color: #e2e8f0; margin: 4px 0; }
+
+.modal-lg { max-width: 900px; }
+
+#loadingOverlay {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 500;
+    display: none; align-items: center; justify-content: center; flex-direction: column;
+    backdrop-filter: blur(4px);
+}
+.spinner {
+    width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%;
+    animation: spin 1s linear infinite; margin-bottom: 15px;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.btn-undo-enter { animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.drop-zone { border: 2px dashed #e2e8f0; transition: all 0.2s; }
+.drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
+
+.tools-container:hover .tools-options { 
+    opacity: 1; 
+    transform: translateY(0); 
+    pointer-events: auto; 
+    visibility: visible; 
+}
+.tools-options { 
+    opacity: 0; 
+    transform: translateY(10px); 
+    pointer-events: none; 
+    visibility: hidden; 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+
+/* --- Estilização do Modo Escuro --- */
+body.dark { background-color: #0f172a; color: #f8fafc; }
+body.dark .bg-white { background-color: #1e293b; border-color: #334155; }
+body.dark .bg-slate-50, body.dark .bg-slate-100 { background-color: #0f172a; border-color: #1e293b; }
+body.dark .text-slate-800, body.dark .text-slate-700 { color: #f1f5f9; }
+body.dark .text-slate-600, body.dark .text-slate-500 { color: #cbd5e1; }
+body.dark .text-slate-400 { color: #94a3b8; }
+body.dark .border-slate-100, body.dark .border-slate-200 { border-color: #334155; }
+body.dark .border-slate-50 { border-color: #1e293b; }
+body.dark .shadow-sm, body.dark .shadow-lg, body.dark .shadow-xl { box-shadow: none; }
+body.dark th { background-color: #1e293b !important; color: #94a3b8 !important; border-bottom-color: #334155 !important; }
+body.dark td { border-color: #334155 !important; color: #cbd5e1 !important; }
+body.dark .hover\:bg-slate-50:hover { background-color: #334155; }
+
+body.dark .db-select { background-color: #1e293b; border-color: #334155; color: #cbd5e1; }
+body.dark .db-select div { color: #cbd5e1; border-color: #334155; }
+body.dark .db-select div:hover { background-color: #0f172a; color: #38bdf8; }
+
+body.dark select { background-color: transparent; color: #f1f5f9; border-color: #334155; }
+body.dark select option { background-color: #1e293b; color: #f1f5f9; }
+body.dark input, body.dark textarea { background-color: transparent; color: #f1f5f9; border-color: #334155; }
+body.dark input:focus, body.dark select:focus, body.dark textarea:focus { border-color: #3b82f6; }
+
+body.dark .upload-menu { background-color: #1e293b; border-color: #334155; }
+body.dark .upload-menu button:hover { background-color: #334155; color: #f1f5f9; }
+body.dark .divider { background-color: #334155; }
+body.dark .drop-zone { background-color: #1e293b; border-color: #334155; }
+body.dark .drop-zone:hover { background-color: rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
+body.dark .bg-slate-800 { background-color: #38bdf8; color: #0f172a; }
+body.dark .bg-slate-800.text-white { color: #0f172a; }
+body.dark .tools-options button { background-color: #1e293b; border-color: #334155; color: #cbd5e1; }
+body.dark .tools-options button:hover { background-color: #334155; color: #f8fafc; }
+body.dark .nav-btn.inactive { background-color: #1e293b; border-color: #334155; color: #cbd5e1; }
+body.dark .nav-btn.inactive:hover { background-color: #334155; }
+body.dark .nav-btn.active { background-color: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+body.dark .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+body.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+
+body.dark #tableContainerSLA table { background-color: #0f172a; }
+body.dark #tableContainerSLA thead tr { background-color: #1e293b !important; }
+body.dark #tableContainerSLA tbody tr { background-color: #0f172a; }
+body.dark #tableContainerSLA tbody tr:hover { background-color: #1e293b; }
+body.dark .bg-slate-50\/50, body.dark .bg-slate-50\/30 { background-color: #1e293b !important; border-color: #334155 !important; }
+
+body.dark #userDropdown { background-color: #1e293b; border-color: #334155; }
+body.dark #userDropdown .bg-gray-50 { background-color: #0f172a; border-color: #334155; }
+body.dark #userDropdown .text-gray-800 { color: #f8fafc; }
+body.dark #userDropdown button { color: #cbd5e1; }
+body.dark #userDropdown button:hover { background-color: #334155; color: #f8fafc; }
+body.dark #userDropdown .border-t { border-color: #334155; }
+body.dark #userDropdown .text-red-600 { color: #f87171; }
+
+.toggle-switch { position: relative; display: inline-block; width: 32px; height: 18px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #2563eb; }
+input:checked + .slider:before { transform: translateX(14px); }
+body.dark .slider { background-color: #334155; }
+body.dark input:checked + .slider { background-color: #38bdf8; }
