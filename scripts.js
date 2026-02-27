@@ -585,12 +585,26 @@ function sendNtpToTab() {
 }
 
 function updateSlaCharts(data) {
-    let labels = []; let absData = []; let fecData = []; let slaData = [];
+    let labels = []; 
+    let absData = []; 
+    let fecData = []; 
+    let slaData = [];
     
+    // 1. Lógica de Processamento de Dados
     if(slaTimeView === 'monthly') {
         const months = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
-        const mData = months.map(m => { const sub = data.filter(d => d.mes === m); const abs = sub.reduce((a,c) => a+(c.calcAberturas||0), 0); const fec = sub.reduce((a,c) => a+(c.calcFechamentos||0), 0); let sla = abs > 0 ? (fec/abs)*100 : 0; if(sla > 100) sla = 100; return { m, abs, fec, sla }; });
-        labels = months.map(m=>m.substring(0,3)); absData = mData.map(d=>d.abs); fecData = mData.map(d=>d.fec); slaData = mData.map(d=>d.sla);
+        const mData = months.map(m => { 
+            const sub = data.filter(d => d.mes === m); 
+            const abs = sub.reduce((a,c) => a+(c.calcAberturas||0), 0); 
+            const fec = sub.reduce((a,c) => a+(c.calcFechamentos||0), 0); 
+            let sla = abs > 0 ? (fec/abs)*100 : 0; 
+            if(sla > 100) sla = 100; 
+            return { m, abs, fec, sla }; 
+        });
+        labels = months.map(m => m.substring(0,3)); 
+        absData = mData.map(d => d.abs); 
+        fecData = mData.map(d => d.fec); 
+        slaData = mData.map(d => d.sla);
     } else {
         let dailyMap = {}; 
         data.forEach(item => { 
@@ -615,17 +629,29 @@ function updateSlaCharts(data) {
         labels = allDates.map(d => { const parts = d.split('-'); return `${parts[2]}/${parts[1]}`; }); 
         absData = allDates.map(d => dailyMap[d].abs); 
         fecData = allDates.map(d => dailyMap[d].fec); 
-        slaData = allDates.map(d => { let abs = dailyMap[d].abs; let fec = dailyMap[d].fec; let sla = abs > 0 ? (fec/abs)*100 : 0; if (sla > 100) sla = 100; return sla; });
+        slaData = allDates.map(d => { 
+            let abs = dailyMap[d].abs; 
+            let fec = dailyMap[d].fec; 
+            let sla = abs > 0 ? (fec/abs)*100 : 0; 
+            if (sla > 100) sla = 100; 
+            return sla; 
+        });
     }
 
+    // 2. Configurações de Estilo (Dark/Light Mode)
     const isDark = document.body.classList.contains('dark'); 
     const chartTextColor = isDark ? '#94a3b8' : '#64748b'; 
-    const datalabelsColor = isDark ? '#f8fafc' : '#0f172a'; // Correção Dark Mode
+    const datalabelsColor = isDark ? '#f8fafc' : '#0f172a';
 
     Chart.defaults.color = chartTextColor; 
     Chart.defaults.set('plugins.datalabels', { color: datalabelsColor });
 
-    if(charts['sla']) charts['sla'].destroy(); const ctxSla = document.getElementById('slaChart').getContext('2d'); const gradientSla = ctxSla.createLinearGradient(0, 0, 0, 300); gradientSla.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); gradientSla.addColorStop(1, 'rgba(37, 99, 235, 0)');
+    // 3. Gráfico de SLA (Linha)
+    if(charts['sla']) charts['sla'].destroy(); 
+    const ctxSla = document.getElementById('slaChart').getContext('2d'); 
+    const gradientSla = ctxSla.createLinearGradient(0, 0, 0, 300); 
+    gradientSla.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); 
+    gradientSla.addColorStop(1, 'rgba(37, 99, 235, 0)');
     
     charts['sla'] = new Chart(ctxSla, { 
         type: 'line', 
@@ -639,30 +665,89 @@ function updateSlaCharts(data) {
                 tension:0.4, 
                 fill:true, 
                 backgroundColor:gradientSla, 
-                pointRadius: slaTimeView === 'daily' ? 2 : 0, 
+                pointRadius: slaTimeView === 'daily' ? 2 : 4, 
                 datalabels:{ 
                     display: slaTimeView === 'daily' ? 'auto' : (context) => context.dataset.data[context.dataIndex] > 0, 
                     formatter:(v)=>v>0?v.toFixed(0)+'%':'', 
-                    offset: slaTimeView === 'daily' ? 4 : 8, 
+                    offset: 10, // Aumentado para não colar na linha
                     align:'top', 
-                    clip: false,
-                    font: { size: slaTimeView === 'daily' ? 9 : 11 }
+                    clip: false, // Permite que o label "saia" da área de desenho se necessário
+                    font: { size: slaTimeView === 'daily' ? 10 : 12, weight: 'bold' }
                 } 
             }] 
         }, 
         options: { 
             responsive:true, 
             maintainAspectRatio:false, 
-            layout: { padding: { top: 35, right: 20, left: 10, bottom: 10 } }, 
-            scales:{ 
-                y:{ min:0, max:115, ticks: { stepSize: 20, color: chartTextColor } }, 
-                x:{ grid:{display:false}, ticks: { maxTicksLimit: slaTimeView === 'daily' ? 12 : 15, color: chartTextColor, font: { size: slaTimeView === 'daily' ? 9 : 11 } } } 
+            layout: { 
+                padding: { top: 45, right: 20, left: 10, bottom: 10 } // Mais espaço no topo
             }, 
-            plugins:{ legend:{display:false} } 
+            scales:{ 
+                y:{ 
+                    min: 0, 
+                    max: 115, // Truque: vai até 115 para o 100% ter espaço de sobra
+                    ticks: { 
+                        stepSize: 20, 
+                        color: chartTextColor,
+                        callback: function(value) {
+                            if (value <= 100) return value + '%'; // Só mostra até 100 no eixo
+                        }
+                    } 
+                }, 
+                x:{ 
+                    grid:{display:false}, 
+                    ticks: { 
+                        maxTicksLimit: slaTimeView === 'daily' ? 12 : 15, 
+                        color: chartTextColor, 
+                        font: { size: slaTimeView === 'daily' ? 9 : 11 } 
+                    } 
+                } 
+            }, 
+            plugins:{ 
+                legend:{display:false},
+                datalabels: { clamp: true }
+            } 
         } 
     });
 
-    if(charts['vol']) charts['vol'].destroy(); charts['vol'] = new Chart(document.getElementById('volumeChart'), { type: 'bar', data: { labels: labels, datasets: [ { label:'Abert', data: absData, backgroundColor:'#fca5a5', borderRadius:3, barPercentage: 0.6, categoryPercentage: 0.8 }, { label:'Fech', data: fecData, backgroundColor:'#86efac', borderRadius:3, barPercentage: 0.6, categoryPercentage: 0.8 } ] }, options: { responsive:true, maintainAspectRatio:false, layout: { padding: { top: 30, right: 10, left: 10, bottom: 0 } }, plugins:{ legend:{position:'bottom', labels: { color: chartTextColor }}, datalabels: { display: slaTimeView === 'monthly' ? true : false, anchor: 'end', align: 'top', offset: 0, clip: false, font: { size: 9 }, formatter: function(value) { return value > 0 ? value : ''; } } }, scales:{ x:{ grid:{display:false}, ticks: { maxTicksLimit: 15, color: chartTextColor } }, y: { grace: '15%', ticks: { color: chartTextColor } } } } });
+    // 4. Gráfico de Volume (Barras)
+    if(charts['vol']) charts['vol'].destroy(); 
+    charts['vol'] = new Chart(document.getElementById('volumeChart'), { 
+        type: 'bar', 
+        data: { 
+            labels: labels, 
+            datasets: [ 
+                { label:'Abert', data: absData, backgroundColor:'#fca5a5', borderRadius:3, barPercentage: 0.6, categoryPercentage: 0.8 }, 
+                { label:'Fech', data: fecData, backgroundColor:'#86efac', borderRadius:3, barPercentage: 0.6, categoryPercentage: 0.8 } 
+            ] 
+        }, 
+        options: { 
+            responsive:true, 
+            maintainAspectRatio:false, 
+            layout: { 
+                padding: { top: 40, right: 10, left: 10, bottom: 0 } 
+            }, 
+            plugins:{ 
+                legend:{ position:'bottom', labels: { color: chartTextColor } }, 
+                datalabels: { 
+                    display: slaTimeView === 'monthly', 
+                    anchor: 'end', 
+                    align: 'top', 
+                    offset: 4, 
+                    clip: false, 
+                    font: { size: 10, weight: '600' }, 
+                    formatter: (value) => value > 0 ? value : '' 
+                } 
+            }, 
+            scales:{ 
+                x:{ grid:{display:false}, ticks: { maxTicksLimit: 15, color: chartTextColor } }, 
+                y: { 
+                    grace: '25%', // Dá 25% de espaço extra acima da maior barra
+                    ticks: { color: chartTextColor } 
+                } 
+            } 
+        } 
+    });
 }
 
 function openOrdersModal(idKey) { 
