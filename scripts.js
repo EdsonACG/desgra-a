@@ -277,7 +277,7 @@ function renderCalcPreview(data) {
 
 function downloadCalculatedCSV() {
     if (!calcProcessedData || calcProcessedData.length === 0) return;
-    const csv = Papa.unparse(calcProcessedData, { delimiter: ";", quotes: true, header: false }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", "dados_sistema_imbera.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    const csv = Papa.unparse(calcProcessedData, { delimiter: ";", quotes: true, header: false }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", "vencimentos.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
 
 function exportarDBCsv() {
